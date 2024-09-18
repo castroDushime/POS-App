@@ -28,8 +28,8 @@ function Dashboard() {
                     </div>
                 </div>
                 <div className="row">
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="card mb-2 tw-border-gray-100 tw-border-2">
+                    <div className="col-12 col-md-6 mb-2 col-lg-4">
+                        <div className="card h-100  tw-border-gray-100 tw-border-2">
                             <div className="card-body text-black">
                                 <div className="d-flex justify-content-between">
                                     <h6>Total Employees</h6>
@@ -60,7 +60,7 @@ function Dashboard() {
                             </div>
                         </div>
                     </div>
-                    <div className="col-12 col-md-6 col-lg-4">
+                    <div className="col-12 col-md-6 mb-2 col-lg-4">
                         <div className="card mb-2 tw-border-gray-100 h-100 tw-border-2">
                             <div className="card-body text-black">
                                 <div className="d-flex justify-content-between">
@@ -114,7 +114,7 @@ function Dashboard() {
                             </div>
                         </div>
                     </div>
-                    <div className="col-12 col-md-6 col-lg-4">
+                    <div className="col-12 col-md-6 mb-2 col-lg-4">
                         <div className="card mb-2 tw-border-gray-100 h-100 tw-border-2">
                             <div className="card-body text-black">
                                 <div className="d-flex justify-content-between">
