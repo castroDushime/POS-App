@@ -11,6 +11,7 @@ import {BiBarChartAlt2} from "react-icons/bi";
 import {TbDatabaseDollar} from "react-icons/tb";
 import {FaSackDollar, FaScaleBalanced} from "react-icons/fa6";
 import {VscFileSubmodule} from "react-icons/vsc";
+import {HiOutlineMegaphone} from "react-icons/hi2";
 
 export default function SideBar({ isOpen }) {
     const sideBarLinks = [
@@ -37,7 +38,7 @@ export default function SideBar({ isOpen }) {
 
     return (
         <aside
-                className={`tw-min-h-[72vh]  mx-0 d-none d-lg-block py-4 tw-flex-shrink-0 border-end position-relative tw-bg-repeat tw-bg-contain py-3 tw-border-slate-200 tw-transition-all ${isOpen ? 'tw-w-64' : 'tw-w-0 tw-opacity-0'}`}>
+                className={`tw-min-h-[72vh] tw-bg-gray-100  mx-0 d-none d-lg-block py-4 tw-flex-shrink-0 border-end position-relative tw-bg-repeat tw-bg-contain py-3 tw-border-slate-100 tw-transition-all ${isOpen ? 'tw-w-64' : 'tw-w-0 tw-opacity-0'}`}>
             <div className="d-flex flex-column justify-content-between h-100 position-relative">
                 <div>
                     <div className="w-100 text-center my-3 logo-container">
@@ -80,9 +81,17 @@ export default function SideBar({ isOpen }) {
 
                 </div>
                 <div className="text-center p-3 position-absolute tw-bottom-0 tw-right-0 tw-left-0">
-                    <div className="card">
+                    <div className="card bg-white">
                         <div className="card-body">
-                            <div className="d-flex gap-2"></div>
+                            <div className="d-flex gap-2">
+                                <div className="tw-w-10 tw-h-10 tw-bg-violet-600 tw-rounded-full tw-flex tw-items-center tw-justify-center">
+                                    <HiOutlineMegaphone className="tw-text-white tw-text-lg"/>
+                                </div>
+                                <div className="tw-flex tw-flex-col">
+                                    <span className="tw-text-sm tw-font-semibold">John Doe</span>
+                                    <span className="tw-text-xs tw-text-gray-400">Admin</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
