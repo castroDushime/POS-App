@@ -170,10 +170,10 @@ function Dashboard() {
                     </div>
                 </div>
                 <div className="row my-3">
-                    <div className="col-lg-5">
+                    <div className="col-lg-12 col-xl-5">
                         <PercentStackedBarChart/>
                     </div>
-                    <div className="col-lg-7">
+                    <div className="col-lg-12 col-xl-7">
                         <BarCharts/>
                     </div>
                 </div>
