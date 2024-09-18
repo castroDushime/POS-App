@@ -12,6 +12,7 @@ import {TbDatabaseDollar} from "react-icons/tb";
 import {FaSackDollar, FaScaleBalanced} from "react-icons/fa6";
 import {VscFileSubmodule} from "react-icons/vsc";
 import {HiOutlineMegaphone} from "react-icons/hi2";
+import {Link} from "react-router-dom";
 
 export default function SideBar({ isOpen }) {
     const sideBarLinks = [
@@ -80,16 +81,18 @@ export default function SideBar({ isOpen }) {
                     ))}
 
                 </div>
-                <div className="text-center p-3 position-absolute tw-bottom-0 tw-right-0 tw-left-0">
+                <div className="text-center p-3 position-absolute tw-bottom-20 tw-right-0 tw-left-0">
                     <div className="card bg-white">
                         <div className="card-body">
                             <div className="d-flex gap-2">
-                                <div className="tw-w-10 tw-h-10 tw-bg-violet-600 tw-rounded-full tw-flex tw-items-center tw-justify-center">
+                                <div className="tw-w-10 tw-h-10 tw-bg-violet-600 tw-rounded-xl tw-flex tw-items-center tw-justify-center">
                                     <HiOutlineMegaphone className="tw-text-white tw-text-lg"/>
                                 </div>
-                                <div className="tw-flex tw-flex-col">
-                                    <span className="tw-text-sm tw-font-semibold">John Doe</span>
-                                    <span className="tw-text-xs tw-text-gray-400">Admin</span>
+                                <div className="tw-flex tw-flex-col tw-items-start">
+                                    <span className="tw-text-sm tw-font-semibold">Announcements</span>
+                                    <span className="tw-text-xs tw-text-gray-400">Stay updates with TurHR</span>
+
+                                    <Link to={'/'} className="tw-text-violet-500">Create New</Link>
                                 </div>
                             </div>
                         </div>
