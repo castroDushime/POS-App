@@ -5,6 +5,7 @@ import {FaRegSquare} from "react-icons/fa";
 import {FaMagnifyingGlass} from "react-icons/fa6";
 import {TbUserPlus} from "react-icons/tb";
 import {Button} from "react-bootstrap";
+import {BiMenuAltLeft} from "react-icons/bi";
 
 
 export function TopNav({toggle, isOpen}) {
@@ -16,8 +17,8 @@ export function TopNav({toggle, isOpen}) {
                     <div className="row">
                         <div className="col-2"></div>
                         <div className="col-10">
-                            <button className="btn btn-outline-secondary" onClick={toggle}>
-                                <span className="navbar-toggler-icon"></span>
+                            <button className="btn " onClick={toggle}>
+                                <BiMenuAltLeft/>
                             </button>
                         </div>
                     </div>

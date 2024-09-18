@@ -10,8 +10,8 @@ import {TbDotsVertical} from "react-icons/tb";
 
 const employees = [
     { id: 'TUR871219', name: 'John Doe', email: 'john.doe@example.com', role: 'Developer', department: 'Engineering', status: 'Full-time' },
-    { id: 'TUR871103', name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Designer', department: 'Design', status: 'Freelance' },
-    { id: 'TUR871481', name: 'Sam Johnson', email: 'sam.johnson@example.com', role: 'Manager', department: 'HR', status: 'Full-time' },
+    { id: 'TUR871103', name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Designer', department: 'Head of Projects', status: 'Freelance' },
+    { id: 'TUR871481', name: 'Sam Johnson', email: 'sam.johnson@example.com', role: 'Manager', department: 'Client & Team Work', status: 'Full-time' },
     // Add more employee objects as needed
 ];
 

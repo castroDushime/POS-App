@@ -7,12 +7,13 @@ import {FaCalendarAlt, FaFileInvoiceDollar, FaUserPlus, FaUsers} from "react-ico
 import {TiHomeOutline} from "react-icons/ti";
 import {IoSettingsOutline} from "react-icons/io5";
 import {IoMdNotificationsOutline} from "react-icons/io";
-import {BiBarChartAlt2} from "react-icons/bi";
+import {BiBarChartAlt2, BiMessageError} from "react-icons/bi";
 import {TbDatabaseDollar} from "react-icons/tb";
 import {FaSackDollar, FaScaleBalanced} from "react-icons/fa6";
 import {VscFileSubmodule} from "react-icons/vsc";
 import {HiOutlineMegaphone} from "react-icons/hi2";
 import {Link} from "react-router-dom";
+import {RiQuestionnaireLine} from "react-icons/ri";
 
 export default function SideBar({ isOpen }) {
     const sideBarLinks = [
@@ -21,7 +22,7 @@ export default function SideBar({ isOpen }) {
         { path: '/', text: 'Leave Management', isActive: false, icon: FaCalendarAlt, title: 'Leave Management' },
         { path: '/', text: 'Settings', isActive: false, icon: IoSettingsOutline, title: 'Settings' },
         { path: '/', text: 'Notification', isActive: false, icon: IoMdNotificationsOutline, title: 'Notification' },
-        { path: '/', text: 'Help Center', isActive: false, icon: IoMdNotificationsOutline, title: 'Notification' },
+        { path: '/', text: 'Help Center', isActive: false, icon: RiQuestionnaireLine, title: 'Help Center' },
     ];
     const TeamManagement = [
         { path: '/', text: 'Performance', isActive: false, icon: BiBarChartAlt2, title: 'Performance' },
@@ -42,8 +43,19 @@ export default function SideBar({ isOpen }) {
                 className={`tw-min-h-[72vh] tw-bg-gray-100  mx-0 d-none d-lg-block py-4 tw-flex-shrink-0 border-end position-relative tw-bg-repeat tw-bg-contain py-3 tw-border-slate-100 tw-transition-all ${isOpen ? 'tw-w-64' : 'tw-w-0 tw-opacity-0'}`}>
             <div className="d-flex flex-column justify-content-between h-100 position-relative">
                 <div>
-                    <div className="w-100 text-center my-3 logo-container">
-                        <h1 className="text-white">Logo</h1>
+                    <div className="mb-3 text-center mx-1 d-flex justify-content-between logo-container">
+                        <div className="d-flex align-items-center gap-2">
+                            <div
+                                className="tw-w-10 text-white fw-bold tw-h-10 tw-bg-violet-600 tw-rounded-xl tw-flex tw-items-center tw-justify-center">
+                                H
+                            </div>
+                            <div className=" tw-items-start">
+                                <span className="tw-text-sm tw-font-semibold">TurHR</span>
+                            </div>
+                        </div>
+                        <div
+                            className="rounded-circle  border border-white border-3 bg-primary-subtle tw-h-11 tw-w-11">
+                        </div>
                     </div>
                     <div className="tw-list-none px-1 d-flex flex-column menu-container">
                         {sideBarLinks.map((link, index) => (
@@ -83,16 +95,35 @@ export default function SideBar({ isOpen }) {
                 </div>
                 <div className="text-center p-3 position-absolute tw-bottom-20 tw-right-0 tw-left-0">
                     <div className="card bg-white">
-                        <div className="card-body">
+                        <div className="card-body ">
                             <div className="d-flex gap-2">
-                                <div className="tw-w-10 tw-h-10 tw-bg-violet-600 tw-rounded-xl tw-flex tw-items-center tw-justify-center">
+                                <div
+                                    className="tw-w-10 tw-h-10 tw-bg-violet-600 tw-rounded-xl tw-flex tw-items-center tw-justify-center">
                                     <HiOutlineMegaphone className="tw-text-white tw-text-lg"/>
                                 </div>
                                 <div className="tw-flex tw-flex-col tw-items-start">
                                     <span className="tw-text-sm tw-font-semibold">Announcements</span>
                                     <span className="tw-text-xs tw-text-gray-400">Stay updates with TurHR</span>
-
                                     <Link to={'/'} className="tw-text-violet-500">Create New</Link>
+                                </div>
+                            </div>
+                            <div className="d-flex py-4 align-items-center">
+                                <span className="fw-semibold">Read by:</span>
+                                <div>
+                                    <div className="tw-relative  mx-2">
+                                        <div
+                                            className="rounded-circle tw-absolute -tw-top-6 border border-white border-3 bg-danger-subtle tw-h-11 tw-w-11">
+                                        </div>
+                                        <div
+                                            className="rounded-circle tw-absolute -tw-top-6 tw-left-6 border border-white border-3 tw-bg-violet-100 tw-h-11 tw-w-11">
+                                        </div>
+                                        <div
+                                            className="rounded-circle tw-absolute -tw-top-6 tw-left-12 tw-bg-violet-200 border border-white border-3 tw-h-11 tw-w-11">
+                                        </div>
+                                        <div
+                                            className="rounded-circle tw-absolute -tw-top-6 tw-left-20 tw-bg-gray-100 border border-white border-3 tw-h-11 tw-w-11">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
