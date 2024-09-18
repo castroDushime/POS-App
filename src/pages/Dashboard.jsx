@@ -1,9 +1,9 @@
-import React from 'react';
+
 import { Container } from 'react-bootstrap';
 import { HiOutlineDownload } from 'react-icons/hi';
 import { FiArrowUpRight } from 'react-icons/fi';
 import PercentStackedBarChart from '../components/PercentStackedBarChart';
-import {TbDots, TbDotsVertical} from "react-icons/tb";
+import {TbDotsVertical} from "react-icons/tb";
 import BarCharts from "../components/BarChart.jsx";
 import AllEmployees from "../components/AllEmployees.jsx";
 
@@ -11,9 +11,9 @@ function Dashboard() {
     return (
         <div>
             <Container fluid={true}>
-                <div className="d-flex my-4 justify-content-between">
+                <div className="tw-flex tw-flex-col lg:tw-flex-row my-4 justify-content-between">
                     <h4>Good Morning, Turja sen</h4>
-                    <div className="d-flex gap-2 align-items-center">
+                    <div className="tw-flex tw-flex-col lg:tw-flex-row gap-2 align-items-center">
                         <select className="form-select">
                             <option>Today</option>
                             <option>Yesterday</option>

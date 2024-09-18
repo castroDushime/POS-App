@@ -20,10 +20,10 @@ function AllEmployees(props) {
         <div>
             <div className="card tw-border-gray-100 border-2">
                 <div className="card-body">
-                    <div className="d-flex justify-content-between">
+                        <div className="tw-flex-col lg:tw-flex-row  tw-justify-between">
                         <h4>All Employees</h4>
 
-                        <div className="tw-flex tw-mb-4 tw-justify-between gap-2 ">
+                        <div className="tw-flex tw-flex-col lg:tw-flex-row tw-mb-4 tw-justify-between gap-2 ">
                             <div className="input-group ">
                                 <button className="btn border border-end-0" type="submit">
                                     <FaMagnifyingGlass/>
