@@ -14,6 +14,9 @@ import {HiOutlineMegaphone} from "react-icons/hi2";
 import {Link} from "react-router-dom";
 import {RiQuestionnaireLine} from "react-icons/ri";
 import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
+import SideBarLinks from "./SideBarLinks.jsx";
+import {IconTransferVertical} from "@tabler/icons-react";
+import {SubmenuLinks} from "./SubmenuLinks.jsx";
 
 export default function SideBar({isOpen}) {
     const {activeLink} = useActiveLink();
@@ -26,7 +29,7 @@ export default function SideBar({isOpen}) {
     ];
     const TeamManagement = [
         {path: '/', text: 'Performance', isActive: false, icon: BiBarChartAlt2, title: 'Performance'},
-        {path: '/', text: 'Payrolls', isActive: false, icon: TbDatabaseDollar, title: 'Payrolls'},
+        {path: '/admin/suppliers', text: 'Suppliers', isActive: 'supp', icon: TbDatabaseDollar, title: 'Suppliers'},
         {path: '/', text: 'Invoices', isActive: false, icon: FaFileInvoiceDollar, title: 'Invoices'},
         {path: '/', text: 'Employees', isActive: false, icon: FaUsers, title: 'Employees'},
         {path: '/admin/roles', text: 'Role/Permission', isActive: 'roles', icon: FaUserPlus, title: 'Role/Permission'},
@@ -93,7 +96,11 @@ export default function SideBar({isOpen}) {
                             title={link.title}
                         />
                     ))}
-                    <span className="px-3 mb-2 fw-semibold tw-text-gray-400">TEAM MANAGEMENT</span>
+                    <SideBarLinks icon={FaUsers} text="People">
+                        <SubmenuLinks path={'/admin/users'} text={'Users'} isActive={activeLink === 'user'}/>
+                        <SubmenuLinks  path={'/admin/employees'} text={'Customers'} isActive={activeLink === 'customers'}/>
+                    </SideBarLinks>
+                    <span className="px-3 mb-2 fw-semibold tw-text-gray-400">Lists</span>
                     {Lists.map((link, index) => (
                         <SideBarLink
                             key={index}

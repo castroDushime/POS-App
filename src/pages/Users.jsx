@@ -12,25 +12,29 @@ import FormField from "../components/common/FormField.jsx";
 const suppliers = [
     {
         id: 1,
-        name: "Mugabo Ltd",
+        createdAt: "2021-09-01",
+        name: "Mugabo Steven",
         email: "mugabo@gmail.com",
         phone: "0781234567",
-        address: "Kigali, Rwanda",
+        role: "Admin",
+
     },{
         id: 2,
-        name: "Rwanda Ltd",
+        createdAt: "2021-09-01",
+        name: "Rwanda Alex",
         email: "mugabo@gmail.com",
         phone: "0780007101",
-        address: "Kigali, Rwanda",
+        role: "Sales Manager",
     },{
         id: 3,
-        name: "Calim Ltd",
+        createdAt: "2021-09-01",
+        name: "Calim Mugabe",
         email: "calim@gmail.com",
         phone: "0780007101",
-        address: "Kigali, Rwanda",
+        role: "Branch Manager",
     }]
 
-function Suppliers() {
+function Users() {
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
@@ -47,7 +51,7 @@ function Suppliers() {
     };
 
     useEffect(() => {
-        setActiveLinkGlobal("supp");
+        setActiveLinkGlobal("user");
     }, [setActiveLinkGlobal]);
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -78,7 +82,7 @@ function Suppliers() {
                     <li className="breadcrumb-item"><Link to="/">Home</Link></li>
                     <li className="breadcrumb-item"><Link to="/admin/dashboard">Dashboard</Link></li>
                     <li className="breadcrumb-item active" aria-current="page">
-                        Suppliers
+                        Users
                     </li>
                 </ol>
             </nav>
@@ -87,14 +91,14 @@ function Suppliers() {
                 <div className="col-12">
                     <div className="card">
                         <div className="card-body">
-                            <h5 className="card-title my-3">Suppliers</h5>
+                            <h5 className="card-title my-3">All Users</h5>
                             <div className="d-flex mb-3 justify-content-between">
                                 <div className="d-flex align-items-center">
                                     <input type="text" className="form-control focus:tw-ring-0 me-2" placeholder="Search"/>
                                 </div>
                                 <button className="btn text-white btn-primary" onClick={handleShowModal}>
                                     <BsPlus/>
-                                    Add Supplier
+                                    Add User
                                 </button>
                             </div>
                             <Table hover responsive>
@@ -102,10 +106,12 @@ function Suppliers() {
                                     className="tw-border-gray-100 tw-bg-gray-100 tw-bg-opacity-70 tw-border-2 rounded"
                                     style={{borderRadius: "20"}}>
                                 <Th column="ID"/>
+                                <Th column="Created At"/>
+
                                 <Th column="Name"/>
                                 <Th column="Email"/>
                                 <Th column="Phone"/>
-                                <Th column="Address"/>
+                                <Th column="Role"/>
                                 <th className="border-top-0 border-0 border border-primary cursor-pointer">
                                     <div className="d-flex align-items-center tw-bg-gray-100 tw-text-gray-400 justify-content-center h-100 tw-py-3 mx-0 fw-normal tw-bg-opacity-70 pe-2">
                                         <span>Action</span>
@@ -117,10 +123,11 @@ function Suppliers() {
                                     currentsuppliers.map((role, index) => (
                                         <tr key={index}>
                                             <td>{role.id}</td>
+                                            <td>{role.createdAt}</td>
                                             <td>{role.name}</td>
                                             <td>{role.email}</td>
                                             <td>{role.phone}</td>
-                                            <td>{role.address}</td>
+                                            <td>{role.role}</td>
                                             <td>
                                                 <div className="d-flex justify-content-center">
                                                     <Dropdown>
@@ -200,4 +207,4 @@ function Suppliers() {
     );
 }
 
-export default Suppliers;
+export default Users;
