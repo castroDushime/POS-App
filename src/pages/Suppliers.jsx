@@ -132,7 +132,7 @@ const roles = [
 
     }]
 
-function Roles() {
+function Suppliers() {
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
@@ -223,10 +223,10 @@ function Roles() {
                                             </td>
                                             <td>
                                                 <div className="d-flex justify-content-center">
-                                                    <Link to={`/admin/roles/${role.id}`} className="btn text-white btn-sm btn-primary me-2">
+                                                    <Link to={`/admin/roles/${role.id}`} className="btn btn-sm btn-primary me-2">
                                                         <LuEye/>
                                                     </Link>
-                                                    <Link to={`/admin/roles/${role.id}`} className="btn text-white btn-sm btn-primary">
+                                                    <Link to={`/admin/roles/${role.id}`} className="btn btn-sm btn-primary">
                                                         <TbDotsVertical/>
                                                     </Link>
                                                 </div>
@@ -305,4 +305,4 @@ function Roles() {
     );
 }
 
-export default Roles;
+export default Suppliers;

@@ -73,7 +73,7 @@ const Profile = () => {
     //
     // }
 
-    return (<Container className="">
+    return (<Container fluid={true} className="">
         <nav aria-label="breadcrumb" className="bg-light mb-3 px-3 py-2 rounded">
             <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item"><Link to="/">Home</Link></li>
