@@ -7,8 +7,38 @@ import {TbDotsVertical} from "react-icons/tb";
 import  {useEffect, useState} from "react";
 import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
 import FormField from "../components/common/FormField.jsx";
+import {FaAsterisk} from "react-icons/fa6";
+const branches = [
+    {
+        id: 1,
+        name: "Kigali"
+    },{
+        id: 2,
+        name: "Musanze"
+    },{
+        id: 3,
+        name: "Huye"
+    }]
 
+const roles = [
+    {
+        id: 1,
+        name: 'Admin',
+        permissions: 5,
+    }, {
+        id: 2,
+        name: 'Manager',
+        permissions: 4,
+    }, {
+        id: 3,
+        name: 'User',
+        permissions: 3,
+    }, {
+        id: 4,
+        name: 'Guest',
+        permissions: 2,
 
+    }]
 const suppliers = [
     {
         id: 1,
@@ -175,7 +205,7 @@ function Users() {
 
             <Modal show={showModal}  onHide={handleCloseModal}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Add New Supplier</Modal.Title>
+                    <Modal.Title>Add New User</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
@@ -189,8 +219,31 @@ function Users() {
                             <FormField label="Phone" name="phone" id="phone"/>
                         </div>
                         <div className="mb-3">
-                            <label className="form-label">Address</label>
-                            <FormControl as="textarea" placeholder="Address" aria-label="With textarea"/>
+                            <label htmlFor="role" className="form-label">
+                                Role <FaAsterisk className="text-danger ms-1" size={10}/>
+                            </label>
+                            <select className="form-select tw-py-3" aria-label="Default select example">
+                                <option selected>Select Role</option>
+                                {
+                                    roles.map((role, index) => (
+                                        <option key={index} value={role.id}>{role.name}</option>
+                                    ))
+                                }
+                            </select>
+                        </div>
+                        <div className="mb-3">
+                            <label htmlFor="role" className="form-label">
+                                Branch <FaAsterisk className="text-danger ms-1" size={10}/>
+                            </label>
+                            <select className="form-select tw-py-3" aria-label="Default select example">
+                                <option selected>Select Role</option>
+                                {
+                                    branches.map((branch, index) => (
+                                        <option key={index} value={branch.id}>{branch.name}</option>
+                                    ))
+                                }
+
+                            </select>
                         </div>
                     </Form>
                 </Modal.Body>
