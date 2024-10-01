@@ -5,15 +5,16 @@ import FormCheckInput from "react-bootstrap/FormCheckInput";
 import {BsDot} from "react-icons/bs";
 import {LuEye} from "react-icons/lu";
 import {TbDotsVertical} from "react-icons/tb";
-import React from "react";
+import React, {useEffect} from "react";
+import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
 
-const Permissions =[
+const Permissions = [
     {
         id: 1,
         name: 'Manage Users',
-    },{
-    id: 2,
-    name: 'Manage Roles',
+    }, {
+        id: 2,
+        name: 'Manage Roles',
     },
     {
         id: 3,
@@ -112,26 +113,32 @@ const Permissions =[
         name: 'Manage Customers',
     }
 ]
-const roles =[
+const roles = [
     {
         id: 1,
         name: 'Admin',
         permissions: 5,
-    },{
+    }, {
         id: 2,
         name: 'Manager',
         permissions: 4,
-    },{
+    }, {
         id: 3,
         name: 'User',
         permissions: 3,
-    },{
+    }, {
         id: 4,
         name: 'Guest',
         permissions: 2,
 
     }]
+
 function Roles() {
+    const {setActiveLinkGlobal} = useActiveLink();
+    useEffect(() => {
+        setActiveLinkGlobal("roles");
+
+    }, [setActiveLinkGlobal]);
     return (
         <Container fluid={true}>
             <nav aria-label="breadcrumb" className="bg-light mb-3 px-3 py-2 rounded">
@@ -151,8 +158,10 @@ function Roles() {
                     <div className="card">
                         <div className="card-body">
                             <h5 className="card-title my-3">Roles and Permissions</h5>
-                            <Table   hover responsive>
-                                <thead className="tw-border-gray-100 tw-bg-gray-100 tw-bg-opacity-70 tw-border-2 rounded" style={{borderRadius:"20"}}>
+                            <Table hover responsive>
+                                <thead
+                                    className="tw-border-gray-100 tw-bg-gray-100 tw-bg-opacity-70 tw-border-2 rounded"
+                                    style={{borderRadius: "20"}}>
 
                                 <Th column=" ID"/>
                                 <Th column=" Name"/>
@@ -173,14 +182,16 @@ function Roles() {
                                             <td>{role.id}</td>
                                             <td>{role.name}</td>
                                             <td>
-                                                <div  className="badge bg-primary">{role.permissions}</div>
+                                                <div className="badge bg-primary">{role.permissions}</div>
                                             </td>
                                             <td>
                                                 <div className="d-flex justify-content-center">
-                                                    <Link to={`/admin/roles/${role.id}`} className="btn btn-sm btn-primary me-2">
+                                                    <Link to={`/admin/roles/${role.id}`}
+                                                          className="btn btn-sm btn-primary me-2">
                                                         <LuEye/>
                                                     </Link>
-                                                    <Link to={`/admin/roles/${role.id}`} className="btn btn-sm btn-primary">
+                                                    <Link to={`/admin/roles/${role.id}`}
+                                                          className="btn btn-sm btn-primary">
                                                         <TbDotsVertical/>
                                                     </Link>
                                                 </div>

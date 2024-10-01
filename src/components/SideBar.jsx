@@ -28,7 +28,7 @@ export default function SideBar({ isOpen }) {
         { path: '/', text: 'Payrolls', isActive: false, icon: TbDatabaseDollar , title: 'Payrolls' },
         { path: '/', text: 'Invoices', isActive: false, icon: FaFileInvoiceDollar , title: 'Invoices' },
         { path: '/', text: 'Employees', isActive: false, icon: FaUsers , title: 'Employees' },
-        { path: '/admin/roles', text: 'Role/Permission', isActive: false, icon: FaUserPlus , title: 'Role/Permission' },
+        { path: '/admin/roles', text: 'Role/Permission', isActive: 'roles', icon: FaUserPlus , title: 'Role/Permission' },
     ];
     const Lists = [
         { path: '/', text: 'Salary Information', isActive: false, icon: FaSackDollar , title: 'Salary Information' },
