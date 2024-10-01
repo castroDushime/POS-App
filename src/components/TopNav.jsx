@@ -12,6 +12,7 @@ import axios from "axios";
 import FormField from "./common/FormField.jsx";
 import PasswordForm from "./common/PasswordForm.jsx";
 import {toast} from "react-toastify";
+import {Link} from "react-router-dom";
 
 
 export function TopNav({toggle, isOpen}) {
@@ -107,7 +108,9 @@ export function TopNav({toggle, isOpen}) {
                             </Dropdown.Toggle>
 
                             <Dropdown.Menu>
-                                <Dropdown.Item href="/admin/profile">profile</Dropdown.Item>
+                                <Dropdown.Item href="/admin/profile">
+                                    <Link to="/admin/profile">Profile</Link>
+                                </Dropdown.Item>
                                 <Dropdown.Item onClick={handleShow} href="#/action-2">Change Password</Dropdown.Item>
                                 <Dropdown.Item href="/">Logout</Dropdown.Item>
                             </Dropdown.Menu>
