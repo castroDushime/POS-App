@@ -1,4 +1,3 @@
-
 import PropTypes from 'prop-types';
 import SideBarLink from "./SideBarLink.jsx";
 import {ImCodepen} from "react-icons/im";
@@ -14,33 +13,47 @@ import {VscFileSubmodule} from "react-icons/vsc";
 import {HiOutlineMegaphone} from "react-icons/hi2";
 import {Link} from "react-router-dom";
 import {RiQuestionnaireLine} from "react-icons/ri";
+import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
 
-export default function SideBar({ isOpen }) {
+export default function SideBar({isOpen}) {
+    const {activeLink} = useActiveLink();
     const sideBarLinks = [
-        { path: '/', text: 'Dashboard', isActive: true, icon: TiHomeOutline, title: 'Calendar' },
-        { path: '/', text: 'Project', isActive: false, icon: GiExitDoor, title: 'Project' },
-        { path: '/', text: 'Leave Management', isActive: false, icon: FaCalendarAlt, title: 'Leave Management' },
-        { path: '/', text: 'Notification', isActive: false, icon: IoMdNotificationsOutline, title: 'Notification' },
-        { path: '/', text: 'Help Center', isActive: false, icon: RiQuestionnaireLine, title: 'Help Center' },
+        {path: '/admin/dashboard', text: 'Dashboard', isActive: 'dashboard', icon: TiHomeOutline, title: 'Calendar'},
+        {path: '/', text: 'Project', isActive: false, icon: GiExitDoor, title: 'Project'},
+        {path: '/', text: 'Leave Management', isActive: false, icon: FaCalendarAlt, title: 'Leave Management'},
+        {path: '/', text: 'Notification', isActive: false, icon: IoMdNotificationsOutline, title: 'Notification'},
+        {path: '/', text: 'Help Center', isActive: false, icon: RiQuestionnaireLine, title: 'Help Center'},
     ];
     const TeamManagement = [
-        { path: '/', text: 'Performance', isActive: false, icon: BiBarChartAlt2, title: 'Performance' },
-        { path: '/', text: 'Payrolls', isActive: false, icon: TbDatabaseDollar , title: 'Payrolls' },
-        { path: '/', text: 'Invoices', isActive: false, icon: FaFileInvoiceDollar , title: 'Invoices' },
-        { path: '/', text: 'Employees', isActive: false, icon: FaUsers , title: 'Employees' },
-        { path: '/admin/roles', text: 'Role/Permission', isActive: 'roles', icon: FaUserPlus , title: 'Role/Permission' },
+        {path: '/', text: 'Performance', isActive: false, icon: BiBarChartAlt2, title: 'Performance'},
+        {path: '/', text: 'Payrolls', isActive: false, icon: TbDatabaseDollar, title: 'Payrolls'},
+        {path: '/', text: 'Invoices', isActive: false, icon: FaFileInvoiceDollar, title: 'Invoices'},
+        {path: '/', text: 'Employees', isActive: false, icon: FaUsers, title: 'Employees'},
+        {path: '/admin/roles', text: 'Role/Permission', isActive: 'roles', icon: FaUserPlus, title: 'Role/Permission'},
     ];
     const Lists = [
-        { path: '/', text: 'Salary Information', isActive: false, icon: FaSackDollar , title: 'Salary Information' },
-        { path: '/', text: 'Compensation Breakdown', isActive: false, icon: FaScaleBalanced  , title: 'Compensation Breakdown' },
-        { path: '/', text: 'Project-specific Data', isActive: false, icon: VscFileSubmodule  , title: 'Project-specific Data' },
-        { path: '/', text: 'Settings', isActive: false, icon: IoSettingsOutline, title: 'Settings' },
+        {path: '/', text: 'Salary Information', isActive: false, icon: FaSackDollar, title: 'Salary Information'},
+        {
+            path: '/',
+            text: 'Compensation Breakdown',
+            isActive: false,
+            icon: FaScaleBalanced,
+            title: 'Compensation Breakdown'
+        },
+        {
+            path: '/',
+            text: 'Project-specific Data',
+            isActive: false,
+            icon: VscFileSubmodule,
+            title: 'Project-specific Data'
+        },
+        {path: '/', text: 'Settings', isActive: false, icon: IoSettingsOutline, title: 'Settings'},
     ];
 
 
     return (
         <aside
-                className={`tw-min-h-[72vh] tw-bg-gray-100  mx-0 d-none d-lg-block py-4 tw-flex-shrink-0 border-end position-relative tw-bg-repeat tw-bg-contain py-3 tw-border-slate-100 tw-transition-all ${isOpen ? 'tw-w-64' : 'tw-w-0 tw-opacity-0'}`}>
+            className={`tw-min-h-[72vh] mx-0 px-1 tw-bg-gray-100   d-none d-lg-block py-4 tw-flex-shrink-0 border-end position-relative tw-bg-repeat tw-bg-contain py-3 tw-border-slate-100 tw-transition-all ${isOpen ? 'tw-w-64' : 'tw-w-0 tw-opacity-0'}`}>
             <div className="d-flex flex-column justify-content-between h-100 position-relative">
                 <div>
                     <div className="mb-3 text-center mx-1 d-flex justify-content-between logo-container">
@@ -63,7 +76,7 @@ export default function SideBar({ isOpen }) {
                                 key={index}
                                 path={link.path}
                                 text={link.text}
-                                isActive={link.isActive}
+                                isActive={activeLink === link.isActive}
                                 icon={link.icon}
                                 title={link.title}
                             />
@@ -75,7 +88,7 @@ export default function SideBar({ isOpen }) {
                             key={index}
                             path={link.path}
                             text={link.text}
-                            isActive={link.isActive}
+                            isActive={activeLink === link.isActive}
                             icon={link.icon}
                             title={link.title}
                         />
@@ -86,7 +99,7 @@ export default function SideBar({ isOpen }) {
                             key={index}
                             path={link.path}
                             text={link.text}
-                            isActive={link.isActive}
+                            isActive={activeLink === link.isActive}
                             icon={link.icon}
                             title={link.title}
                         />

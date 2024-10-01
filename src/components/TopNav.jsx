@@ -109,7 +109,7 @@ export function TopNav({toggle, isOpen}) {
 
                             <Dropdown.Menu>
                                 <Dropdown.Item href="/admin/profile">
-                                    <Link to="/admin/profile">Profile</Link>
+                                    <Link to="/admin/profile" className="text-decoration-none text-black">Profile</Link>
                                 </Dropdown.Item>
                                 <Dropdown.Item onClick={handleShow} href="#/action-2">Change Password</Dropdown.Item>
                                 <Dropdown.Item href="/">Logout</Dropdown.Item>

@@ -6,8 +6,15 @@ import PercentStackedBarChart from '../components/PercentStackedBarChart';
 import {TbDotsVertical} from "react-icons/tb";
 import BarCharts from "../components/BarChart.jsx";
 import AllEmployees from "../components/AllEmployees.jsx";
+import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
+import {useEffect} from "react";
 
 function Dashboard() {
+    const {setActiveLinkGlobal} = useActiveLink();
+    useEffect(() => {
+        setActiveLinkGlobal("dashboard");
+
+    }, [setActiveLinkGlobal]);
     return (
         <div>
             <Container fluid={true}>
