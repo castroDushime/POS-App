@@ -12,7 +12,7 @@ module.exports = {
         sans: ['Poppins', ...defaultTheme.fontFamily.sans],
       },
       colors: {
-        primary: '#001732',
+        primary: '#6571FF',
         info: '#5ab7ad',
         danger: '#dc3545',
         warning: '#F0C252',

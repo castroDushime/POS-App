@@ -20,7 +20,6 @@ export default function SideBar({ isOpen }) {
         { path: '/', text: 'Dashboard', isActive: true, icon: TiHomeOutline, title: 'Calendar' },
         { path: '/', text: 'Project', isActive: false, icon: GiExitDoor, title: 'Project' },
         { path: '/', text: 'Leave Management', isActive: false, icon: FaCalendarAlt, title: 'Leave Management' },
-        { path: '/', text: 'Settings', isActive: false, icon: IoSettingsOutline, title: 'Settings' },
         { path: '/', text: 'Notification', isActive: false, icon: IoMdNotificationsOutline, title: 'Notification' },
         { path: '/', text: 'Help Center', isActive: false, icon: RiQuestionnaireLine, title: 'Help Center' },
     ];
@@ -29,12 +28,13 @@ export default function SideBar({ isOpen }) {
         { path: '/', text: 'Payrolls', isActive: false, icon: TbDatabaseDollar , title: 'Payrolls' },
         { path: '/', text: 'Invoices', isActive: false, icon: FaFileInvoiceDollar , title: 'Invoices' },
         { path: '/', text: 'Employees', isActive: false, icon: FaUsers , title: 'Employees' },
-        { path: '/', text: 'Recruitment & Hiring', isActive: false, icon: FaUserPlus , title: 'Recruitment & Hiring' },
+        { path: '/admin/roles', text: 'Role/Permission', isActive: false, icon: FaUserPlus , title: 'Role/Permission' },
     ];
     const Lists = [
         { path: '/', text: 'Salary Information', isActive: false, icon: FaSackDollar , title: 'Salary Information' },
         { path: '/', text: 'Compensation Breakdown', isActive: false, icon: FaScaleBalanced  , title: 'Compensation Breakdown' },
         { path: '/', text: 'Project-specific Data', isActive: false, icon: VscFileSubmodule  , title: 'Project-specific Data' },
+        { path: '/', text: 'Settings', isActive: false, icon: IoSettingsOutline, title: 'Settings' },
     ];
 
 
@@ -47,10 +47,10 @@ export default function SideBar({ isOpen }) {
                         <div className="d-flex align-items-center gap-2">
                             <div
                                 className="tw-w-10 text-white fw-bold tw-h-10 tw-bg-violet-600 tw-rounded-xl tw-flex tw-items-center tw-justify-center">
-                                H
+                                P
                             </div>
                             <div className=" tw-items-start">
-                                <span className="tw-text-sm tw-font-semibold">TurHR</span>
+                                <span className="tw-text-sm tw-font-semibold">POS</span>
                             </div>
                         </div>
                         <div
@@ -93,7 +93,7 @@ export default function SideBar({ isOpen }) {
                     ))}
 
                 </div>
-                <div className="text-center p-3 position-absolute tw-bottom-20 tw-right-0 tw-left-0">
+                <div className="text-center p-3  tw-bottom-5 tw-right-0 tw-left-0">
                     <div className="card bg-white">
                         <div className="card-body ">
                             <div className="d-flex gap-2">

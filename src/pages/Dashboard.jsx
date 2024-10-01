@@ -22,7 +22,7 @@ function Dashboard() {
                             <option>Last 90 days</option>
                         </select>
                         <button className="btn tw-bg-violet-600 w-100 text-white d-flex align-items-center ms-2">
-                            <HiOutlineDownload />
+                            <HiOutlineDownload/>
                             Export Data
                         </button>
                     </div>
