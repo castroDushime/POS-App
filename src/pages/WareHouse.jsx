@@ -38,7 +38,7 @@ function Users() {
 
     const fetchUsers = () => {
         setIsLoading(true);
-        http.get("/suppliers")
+        http.get("/branches")
             .then((res) => {
                 console.log(res);
                 let data = res.data;
@@ -89,12 +89,7 @@ function Users() {
         let filtered = users;
         if (search) {
             filtered = filtered.filter((user) =>
-                (user.name.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.email.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.phone.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.address.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.branch.name.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.user.name.toLowerCase() || '').includes(search.toLowerCase())
+                (user.name.toLowerCase() || '').includes(search.toLowerCase())
             );
         }
         const paginated = paginate(filtered, currentPage, pageSize)
@@ -107,10 +102,6 @@ function Users() {
     const handleEdit = (user) => {
         setFormData({
             name: user.name,
-            email: user.email,
-            phone: user.phone,
-            address: user.address,
-            password: ""
         });
         setSelectedUserId(user.id);
         setIsEditMode(true);
@@ -137,7 +128,7 @@ function Users() {
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                http.delete(`/suppliers/${userId}`)
+                http.delete(`/branches/${userId}`)
                     .then((res) => {
                         console.log(res);
                         toast.success(res.data.message);
@@ -164,7 +155,7 @@ function Users() {
 
     const saveUser = (e) => {
         e.preventDefault();
-        const url = isEditMode ? `/suppliers/${selectedUserId}` : "/suppliers";
+        const url = isEditMode ? `/branches/${selectedUserId}` : "/branches";
         const method = isEditMode ? "put" : "post";
         http[method](url, {
             name: formData.name,
@@ -195,7 +186,7 @@ function Users() {
     }, []);
     useEffect(() => {
 
-        setActiveLinkGlobal("user");
+        setActiveLinkGlobal("warehouses");
     }, [setActiveLinkGlobal]);
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
@@ -215,7 +206,7 @@ function Users() {
                         <li className="breadcrumb-item"><Link to="/">Home</Link></li>
                         <li className="breadcrumb-item"><Link to="/admin/dashboard">Dashboard</Link></li>
                         <li className="breadcrumb-item active" aria-current="page">
-                            Suppliers
+                            Branches
                         </li>
                     </ol>
                 </nav>
@@ -224,7 +215,7 @@ function Users() {
                     <div className="col-12">
                         <div className="card">
                             <div className="card-body">
-                                <h5 className="card-title my-3">All Suppliers</h5>
+                                <h5 className="card-title my-3">All Branches</h5>
                                 <div className="d-flex mb-3 justify-content-between align-items-center">
                                     <div className="col-lg-4 mb-2">
                                         <FormField type="text" isRequired={false}
@@ -235,7 +226,7 @@ function Users() {
                                     <button className="btn tw-py-3 px-4 text-white btn-primary"
                                             onClick={handleShowModal}>
                                         <BsPlus/>
-                                        Add Supplier
+                                        Add Branch
                                     </button>
                                 </div>
                                 <Table hover responsive>
@@ -245,11 +236,6 @@ function Users() {
                                     <Th column="Created At"/>
 
                                     <Th column="Name"/>
-                                    <Th column="Email"/>
-                                    <Th column="Phone"/>
-                                    <Th column="Address"/>
-                                    <Th column="Branch"/>
-                                    <Th column="Created By"/>
                                     <th className="border-top-0 border-0 border border-primary cursor-pointer">
                                         <div
                                             className="d-flex align-items-center tw-bg-gray-100 tw-text-gray-400 justify-content-center h-100 tw-py-3 mx-0 fw-normal tw-bg-opacity-70 pe-2">
@@ -263,11 +249,6 @@ function Users() {
                                             <tr key={index}>
                                                 <td className="tw-text-xs">{format(new Date(user.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
                                                 <td className="tw-text-xs">{user.name}</td>
-                                                <td className="tw-text-xs">{user.email}</td>
-                                                <td className="tw-text-xs">{user.phone}</td>
-                                                <td className="tw-text-xs">{user.address}</td>
-                                                <td className="tw-text-xs">{user.branch.name}</td>
-                                                <td className="tw-text-xs">{user.user.name}</td>
                                                 <td className="tw-text-xs">
                                                     <Dropdown>
                                                         <Dropdown.Toggle variant="primary" className="tw-text-white"
@@ -305,37 +286,15 @@ function Users() {
                     </div>
                 </div>
 
-                <Modal show={showModal} size="lg" onHide={handleCloseModal}>
+                <Modal show={showModal}  onHide={handleCloseModal}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{isEditMode ? "Edit Supplier" : "Add New Supplier"}</Modal.Title>
+                        <Modal.Title>{isEditMode ? "Edit Branch" : "Add New Branch"}</Modal.Title>
                     </Modal.Header>
                     <Form onSubmit={saveUser}>
                         <Modal.Body>
 
-                            <div className="row">
-                                <div className="col-lg-6">
-                                    <div className="mb-3">
-                                        <FormField label="Name" onChange={handleChange} value={formData.name}
-                                                   name="name" id="name"/>
-                                    </div>
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="mb-3">
-                                        <FormField label="Email" onChange={handleChange} value={formData.email}
-                                                   name="email" id="email"/>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mb-3">
-                                <FormField label="Phone" name="phone" onChange={handleChange}
-                                           value={formData.phone}
-                                           id="phone"/>
-                            </div>
-                            <div className="mb-3">
-                                <FormField label="Address" name="address" type="textarea" onChange={handleChange}
-                                           value={formData.address}
-                                           id="address"/>
-                            </div>
+                            <FormField label="Name" onChange={handleChange} value={formData.name}
+                                       name="name" id="name"/>
 
                         </Modal.Body>
                         <Modal.Footer>

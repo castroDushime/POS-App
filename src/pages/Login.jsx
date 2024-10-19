@@ -2,8 +2,7 @@ import React from 'react';
 import {Col, Row} from "react-bootstrap";
 import {useNavigate} from "react-router-dom";
 import Joi from "joi";
-import {login} from "../services/authService.js";
-import {toast} from "react-toastify";
+import { useAuth } from "../providers/AuthProvider";
 
 const validationSchema = Joi.object({
     email: Joi.string().required().min(10).label('Phone'),
@@ -15,6 +14,7 @@ function Login() {
         email: '',
         password: ''
     });
+    const { login } = useAuth();
     const handleChange = (e) => {
         const {name, value} = e.target;
         setFormData({...formData, [name]: value});
@@ -22,21 +22,18 @@ function Login() {
     const navigate = useNavigate();
     const handleSubmit = (e) => {
         e.preventDefault();
-        navigate('/admin/dashboard');
-        toast.success('Login SuccessFully', {
-            theme: "colored", position: "top-right",
+
+    let body = {
+        email: formData.email,
+        password: formData.password
+    }
+        login(body).then((data) => {
+            if (data.action === 1) {
+                navigate('/admin/dashboard');
+            }
+        }).catch((error) => {
+            console.log(error);
         });
-    // let body = {
-    //     email: formData.email,
-    //     password: formData.password
-    // }
-    //     login(body).then((data) => {
-    //         if (data.action === 1) {
-    //
-    //         }
-    //     }).catch((error) => {
-    //         console.log(error);
-    //     });
     }
         return (
             <div className="d-flex align-items-center min-vh-100">

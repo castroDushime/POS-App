@@ -1,53 +1,60 @@
-import {createContext, useContext, useMemo} from "react";
-import {useNavigate} from "react-router-dom";
-import {useLocalStorage} from "../hooks/useLocalStorage.jsx";
+// src/providers/AuthProvider.jsx
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
-import {logout as authLogout} from '../services/authService.js';
+import http from "../services/httpService.js";
+import { login as authLogin, logout as authLogout } from '../services/authService.js';
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({children}) => {
-    const [user, setUser] = useLocalStorage("user", null);
+export const useProfile = () => useContext(AuthContext);
+
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
-    // call this function when you want to authenticate the user
-    const login = async (data) => {
-        setUserData(data);
-        // Retrieve the stored attempted URL from local storage
-  /*      const attemptedUrl = localStorage.getItem('attemptedUrl');
-        if (attemptedUrl) {
-            window.location = attemptedUrl;
-            return;
-        }*/
-        navigate("/client/dashboard");
+    const fetchUserProfile = () => {
+        return http.get('/auth/profile')
+            .then(({ data }) => {
+                setUser(data);
+                return data;
+            })
+            .catch((error) => {
+                console.log(error);
+                throw error;
+            });
     };
 
-    const setUserData = (data) => {
-        setUser(data);
-    }
+    const login = (body) => {
+        return authLogin(body)
+            .then((data) => {
+                return fetchUserProfile().then((profileData) => {
+                    return { ...data, profile: profileData };
+                });
+            });
+    };
 
-    // call this function to sign out logged-in user
     const logout = () => {
         setUser(null);
         authLogout();
-        navigate("/", {replace: true});
+        navigate("/", { replace: true });
     };
 
-    const value = useMemo(
-        () => ({
-            user,
-            login,
-            logout,
-            setUserData
-        }),
-        [login, logout, user, setUserData]
+    useEffect(() => {
+        fetchUserProfile();
+    }, []);
+
+    return (
+        <AuthContext.Provider value={{ user, login, logout }}>
+            {children}
+        </AuthContext.Provider>
     );
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
     return useContext(AuthContext);
 };
-AuthProvider.prototype = {
-    children: PropTypes.element
-}
+
+AuthProvider.propTypes = {
+    children: PropTypes.element.isRequired
+};

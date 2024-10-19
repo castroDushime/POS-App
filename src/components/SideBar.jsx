@@ -1,31 +1,30 @@
 import PropTypes from 'prop-types';
 import SideBarLink from "./SideBarLink.jsx";
-import {ImCodepen} from "react-icons/im";
 import {GiExitDoor} from "react-icons/gi";
-import {FaCalendarAlt, FaFileInvoiceDollar, FaUserPlus, FaUsers} from "react-icons/fa";
+import {FaFileInvoiceDollar,  FaUserPlus, FaUsers} from "react-icons/fa";
 import {TiHomeOutline} from "react-icons/ti";
 import {IoSettingsOutline} from "react-icons/io5";
-import {IoMdNotificationsOutline} from "react-icons/io";
-import {BiBarChartAlt2, BiMessageError} from "react-icons/bi";
+import {BiBarChartAlt2} from "react-icons/bi";
 import {TbDatabaseDollar} from "react-icons/tb";
-import {FaSackDollar, FaScaleBalanced} from "react-icons/fa6";
+import {FaCartShopping, FaSackDollar, FaScaleBalanced} from "react-icons/fa6";
 import {VscFileSubmodule} from "react-icons/vsc";
 import {HiOutlineMegaphone} from "react-icons/hi2";
 import {Link} from "react-router-dom";
-import {RiQuestionnaireLine} from "react-icons/ri";
 import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
 import SideBarLinks from "./SideBarLinks.jsx";
-import {IconTransferVertical} from "@tabler/icons-react";
 import {SubmenuLinks} from "./SubmenuLinks.jsx";
+import {LuPackageOpen} from "react-icons/lu";
+import {IconReceipt} from "@tabler/icons-react";
+import {useProfile} from "../providers/AuthProvider.jsx";
 
 export default function SideBar({isOpen}) {
     const {activeLink} = useActiveLink();
+    const { user } = useProfile();
     const sideBarLinks = [
         {path: '/admin/dashboard', text: 'Dashboard', isActive: 'dashboard', icon: TiHomeOutline, title: 'Calendar'},
-        {path: '/', text: 'Project', isActive: false, icon: GiExitDoor, title: 'Project'},
-        {path: '/', text: 'Leave Management', isActive: false, icon: FaCalendarAlt, title: 'Leave Management'},
-        {path: '/', text: 'Notification', isActive: false, icon: IoMdNotificationsOutline, title: 'Notification'},
-        {path: '/', text: 'Help Center', isActive: false, icon: RiQuestionnaireLine, title: 'Help Center'},
+        {path: '/admin/warehouse', text: 'Branch', isActive: 'warehouses', icon: GiExitDoor, title: 'Warehouse'},
+        {path: '/admin/sales', text: 'Sales', isActive: "sales", icon: FaCartShopping, title: 'Sales'},
+        {path: '/admin/purchase', text: 'Purchase', isActive: "purchase", icon: IconReceipt, title: 'Purchase'},
     ];
     const TeamManagement = [
         {path: '/', text: 'Performance', isActive: false, icon: BiBarChartAlt2, title: 'Performance'},
@@ -56,13 +55,13 @@ export default function SideBar({isOpen}) {
 
     return (
         <aside
-            className={`tw-min-h-[72vh] mx-0 px-1 tw-bg-gray-100   d-none d-lg-block py-4 tw-flex-shrink-0 border-end position-relative tw-bg-repeat tw-bg-contain py-3 tw-border-slate-100 tw-transition-all ${isOpen ? 'tw-w-64' : 'tw-w-0 tw-opacity-0'}`}>
+            className={`tw-min-h-[72vh] mx-0 px-1 tw-bg-gray-100    py-4 tw-flex-shrink-0 border-end position-relative tw-bg-repeat tw-bg-contain py-3 tw-border-slate-100 tw-transition-all ${isOpen ? 'tw-w-64' : 'tw-w-0 tw-opacity-0'}`}>
             <div className="d-flex flex-column justify-content-between h-100 position-relative">
                 <div>
                     <div className="mb-3 text-center mx-1 d-flex justify-content-between logo-container">
                         <div className="d-flex align-items-center gap-2">
                             <div
-                                className="tw-w-10 text-white fw-bold tw-h-10 tw-bg-violet-600 tw-rounded-xl tw-flex tw-items-center tw-justify-center">
+                                className="tw-w-10 text-white fw-bold tw-h-10 bg-primary tw-rounded-xl tw-flex tw-items-center tw-justify-center">
                                 P
                             </div>
                             <div className=" tw-items-start">
@@ -85,6 +84,26 @@ export default function SideBar({isOpen}) {
                             />
                         ))}
                     </div>
+                    {
+                        user?.user?.role?.permissions?.includes('manage-products','manage-product-categories') &&<SideBarLinks icon={LuPackageOpen} text="Products">
+                            {
+                                user?.user?.role?.permissions?.includes('manage-products') &&
+                                <SubmenuLinks path={'/admin/products'} text={'Product'} isActive={activeLink === 'products'}/>
+                            }
+                            {
+                                user?.user?.role?.permissions?.includes('manage-product-categories') &&
+                                <SubmenuLinks path={'/admin/product-category'} text={'Product Categories'} isActive={activeLink === 'categories'}/>
+                            }
+                            {
+                                user?.user?.role?.permissions?.includes('manage-brands') &&
+                                <SubmenuLinks path={'/admin/brands'} text={'Brands'} isActive={activeLink === 'brands'}/>
+                            }
+                            {
+                                user?.user?.role?.permissions?.includes('manage-units') &&
+                                <SubmenuLinks path={'/admin/units'} text={'Units'} isActive={activeLink === 'units'}/>
+                            }
+                        </SideBarLinks>
+                    }
                     <span className="px-3 mb-2 fw-semibold tw-text-gray-400">TEAM MANAGEMENT</span>
                     {TeamManagement.map((link, index) => (
                         <SideBarLink
@@ -98,7 +117,7 @@ export default function SideBar({isOpen}) {
                     ))}
                     <SideBarLinks icon={FaUsers} text="People">
                         <SubmenuLinks path={'/admin/users'} text={'Users'} isActive={activeLink === 'user'}/>
-                        <SubmenuLinks  path={'/admin/employees'} text={'Customers'} isActive={activeLink === 'customers'}/>
+                        <SubmenuLinks  path={'/admin/customers'} text={'Customers'} isActive={activeLink === 'customers'}/>
                     </SideBarLinks>
                     <span className="px-3 mb-2 fw-semibold tw-text-gray-400">Lists</span>
                     {Lists.map((link, index) => (

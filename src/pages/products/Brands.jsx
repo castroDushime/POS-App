@@ -1,48 +1,44 @@
-import {Container, Table, Pagination, Modal, Button, Form, Dropdown} from "react-bootstrap";
+import {Container, Table,Modal, Button, Form, Dropdown} from "react-bootstrap";
 import {Link} from "react-router-dom";
-import Th from "../components/common/Th.jsx";
+import Th from "../../components/common/Th.jsx";
 import {BsPlus} from "react-icons/bs";
 import {LuEye} from "react-icons/lu";
 import {useEffect, useState} from "react";
-import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
-import FormField from "../components/common/FormField.jsx";
+import {useActiveLink} from "../../providers/ActiveLinkProvider.jsx";
+import FormField from "../../components/common/FormField.jsx";
 import {FaAsterisk} from "react-icons/fa6";
-import http from "../services/httpService.js";
+import http from "../../services/httpService.js";
 import ContentLoader from "react-content-loader";
 import _ from "lodash";
-import AppPagination from "../components/common/AppPagination.jsx";
-import {paginate} from "../components/common/paginate.jsx";
+import AppPagination from "../../components/common/AppPagination.jsx";
+import {paginate} from "../../components/common/paginate.jsx";
 import {format} from 'date-fns';
-import {fetchBranches, loadRoles} from "../services/authService.js";
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
 
-function Users() {
+function Brands() {
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [users, setUsers] = useState([]);
+    const [brands, setBrands] = useState([]);
     const [search, setSearch] = useState('');
     const pageSize = 10;
-    const [branches, setBranches] = useState([]);
-    const [roles, setRoles] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
     const [formData, setFormData] = useState({
         name: "",
-        email: "",
-        phone: "",
-        address: "",
     });
+    const [imagePreview, setImagePreview] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(null);
 
-    const fetchUsers = () => {
+    const fetchBrands = () => {
         setIsLoading(true);
-        http.get("/suppliers")
+        http.get("/brands")
             .then((res) => {
                 console.log(res);
                 let data = res.data;
-                setUsers(data);
+                setBrands(data);
             }).catch(() => {
 
         })
@@ -50,29 +46,22 @@ function Users() {
                 setIsLoading(false);
             });
     }
-    const loadBranches = () => {
-        fetchBranches().then((res) => {
-            console.log(res);
-            setBranches(res);
-        }).catch(() => {
-            console.log("Error fetching branches");
-        });
-    }
-    const fetchRoles = () => {
-        setIsLoading(true);
-        loadRoles().then((res) => {
-            setIsLoading(false);
-            setRoles(res);
-        }).catch(() => {
-            console.log("Error fetching roles");
-        });
-    }
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    }
+        const { name, value, files } = e.target;
+        if (name === "image" && files.length > 0) {
+            const file = files[0];
+            setFormData({
+                ...formData,
+                [name]: file
+            });
+            setImagePreview(URL.createObjectURL(file));
+        } else {
+            setFormData({
+                ...formData,
+                [name]: value
+            });
+        }
+    };
 
     const handleShowModal = () => setShowModal(true);
     const handleCloseModal = () => {
@@ -80,37 +69,30 @@ function Users() {
         setIsEditMode(false);
         setFormData({
             name: "",
-            email: "",
-            phone: "",
-            address: "",
+            image: null
         });
     };
     const getPagedData = () => {
-        let filtered = users;
+        let filtered = brands;
         if (search) {
-            filtered = filtered.filter((user) =>
-                (user.name.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.email.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.phone.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.address.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.branch.name.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.user.name.toLowerCase() || '').includes(search.toLowerCase())
+            filtered = filtered.filter((brand) =>
+                (brand.name.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (brand.code.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (brand.status.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (brand.note.toLowerCase() || '').includes(search.toLowerCase())
             );
         }
         const paginated = paginate(filtered, currentPage, pageSize)
         return {totalCount: filtered.length, data: paginated}
     }
-    const {totalCount, data: paginatedUsers} = getPagedData();
-    const from = paginatedUsers.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
+    const {totalCount, data: paginatedbrands} = getPagedData();
+    const from = paginatedbrands.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
     const to = Math.min((currentPage * pageSize), totalCount);
 
     const handleEdit = (user) => {
         setFormData({
             name: user.name,
-            email: user.email,
-            phone: user.phone,
-            address: user.address,
-            password: ""
+            image: user.image
         });
         setSelectedUserId(user.id);
         setIsEditMode(true);
@@ -137,11 +119,11 @@ function Users() {
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                http.delete(`/suppliers/${userId}`)
+                http.delete(`/brands/${userId}`)
                     .then((res) => {
                         console.log(res);
                         toast.success(res.data.message);
-                        fetchUsers();
+                        fetchBrands();
                     }).catch((error) => {
                     console.log(error);
                     toast.error(error.response.data.message);
@@ -161,16 +143,32 @@ function Users() {
             }
         });
     };
+    const fetchSuppliers = () => {
+        setIsLoading(true);
+        http.get("/suppliers")
+            .then((res) => {
+                console.log(res);
+                let data = res.data;
+                setSuppliers(data);
+            }).catch(() => {
 
-    const saveUser = (e) => {
+        })
+            .finally(() => {
+                setIsLoading(false);
+            });
+    }
+
+    const saveProduct = (e) => {
         e.preventDefault();
-        const url = isEditMode ? `/suppliers/${selectedUserId}` : "/suppliers";
+        const url = isEditMode ? `/brands/${selectedUserId}` : "/brands";
         const method = isEditMode ? "put" : "post";
         http[method](url, {
             name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
+            code: formData.email,
+            units: formData.phone,
+            status: "pending",
+            note: formData.address,
+            supplierId: formData.supplier
         }).then((res) => {
             console.log(res);
             toast.success(res.data.message);
@@ -178,7 +176,7 @@ function Users() {
             console.log(error);
         }).finally(() => {
             handleCloseModal();
-            fetchUsers();
+            fetchBrands();
         });
     }
 
@@ -189,13 +187,12 @@ function Users() {
     }
 
     useEffect(() => {
-        fetchUsers();
-        loadBranches();
-        fetchRoles();
+        fetchBrands();
+        fetchSuppliers();
     }, []);
     useEffect(() => {
 
-        setActiveLinkGlobal("user");
+        setActiveLinkGlobal("brands");
     }, [setActiveLinkGlobal]);
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
@@ -215,7 +212,7 @@ function Users() {
                         <li className="breadcrumb-item"><Link to="/">Home</Link></li>
                         <li className="breadcrumb-item"><Link to="/admin/dashboard">Dashboard</Link></li>
                         <li className="breadcrumb-item active" aria-current="page">
-                            Suppliers
+                            Product brands
                         </li>
                     </ol>
                 </nav>
@@ -224,7 +221,7 @@ function Users() {
                     <div className="col-12">
                         <div className="card">
                             <div className="card-body">
-                                <h5 className="card-title my-3">All Suppliers</h5>
+                                <h5 className="card-title my-3">All Product brands</h5>
                                 <div className="d-flex mb-3 justify-content-between align-items-center">
                                     <div className="col-lg-4 mb-2">
                                         <FormField type="text" isRequired={false}
@@ -235,7 +232,7 @@ function Users() {
                                     <button className="btn tw-py-3 px-4 text-white btn-primary"
                                             onClick={handleShowModal}>
                                         <BsPlus/>
-                                        Add Supplier
+                                        Add Category
                                     </button>
                                 </div>
                                 <Table hover responsive>
@@ -245,11 +242,6 @@ function Users() {
                                     <Th column="Created At"/>
 
                                     <Th column="Name"/>
-                                    <Th column="Email"/>
-                                    <Th column="Phone"/>
-                                    <Th column="Address"/>
-                                    <Th column="Branch"/>
-                                    <Th column="Created By"/>
                                     <th className="border-top-0 border-0 border border-primary cursor-pointer">
                                         <div
                                             className="d-flex align-items-center tw-bg-gray-100 tw-text-gray-400 justify-content-center h-100 tw-py-3 mx-0 fw-normal tw-bg-opacity-70 pe-2">
@@ -259,29 +251,26 @@ function Users() {
                                     </thead>
                                     <tbody>
                                     {
-                                        paginatedUsers.map((user, index) => (
+                                        paginatedbrands.map((brand, index) => (
                                             <tr key={index}>
-                                                <td className="tw-text-xs">{format(new Date(user.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
-                                                <td className="tw-text-xs">{user.name}</td>
-                                                <td className="tw-text-xs">{user.email}</td>
-                                                <td className="tw-text-xs">{user.phone}</td>
-                                                <td className="tw-text-xs">{user.address}</td>
-                                                <td className="tw-text-xs">{user.branch.name}</td>
-                                                <td className="tw-text-xs">{user.user.name}</td>
+                                                <td className="tw-text-xs">{format(new Date(brand.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
+                                                <td className="tw-text-xs">{brand.name}</td>
                                                 <td className="tw-text-xs">
-                                                    <Dropdown>
-                                                        <Dropdown.Toggle variant="primary" className="tw-text-white"
-                                                                         id="dropdown-basic">
-                                                            options
-                                                        </Dropdown.Toggle>
+                                                    <div className="d-flex justify-content-center">
+                                                        <Dropdown>
+                                                            <Dropdown.Toggle variant="primary" className="tw-text-white"
+                                                                             id="dropdown-basic">
+                                                                options
+                                                            </Dropdown.Toggle>
 
-                                                        <Dropdown.Menu>
-                                                            <Dropdown.Item
-                                                                onClick={() => handleEdit(user)}>Edit</Dropdown.Item>
-                                                            <Dropdown.Item
-                                                                onClick={() => handleDelete(user.id)}>Delete</Dropdown.Item>
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
+                                                            <Dropdown.Menu>
+                                                                <Dropdown.Item
+                                                                    onClick={() => handleEdit(brand)}>Edit</Dropdown.Item>
+                                                                <Dropdown.Item
+                                                                    onClick={() => handleDelete(brand.id)}>Delete</Dropdown.Item>
+                                                            </Dropdown.Menu>
+                                                        </Dropdown>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -291,7 +280,7 @@ function Users() {
                                 <div className="align-items-center d-flex justify-content-between">
                                     <div>
                                         <span
-                                            className="tw-text-gray-500">Showing {from} to {to} of {users?.length} entries</span>
+                                            className="tw-text-gray-500">Showing {from} to {to} of {brands?.length} entries</span>
                                     </div>
                                     <AppPagination
                                         total={totalCount}
@@ -305,36 +294,20 @@ function Users() {
                     </div>
                 </div>
 
-                <Modal show={showModal} size="lg" onHide={handleCloseModal}>
+                <Modal show={showModal}  onHide={handleCloseModal}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{isEditMode ? "Edit Supplier" : "Add New Supplier"}</Modal.Title>
+                        <Modal.Title>{isEditMode ? "Edit Product" : "Add New Product"}</Modal.Title>
                     </Modal.Header>
-                    <Form onSubmit={saveUser}>
+                    <Form onSubmit={saveProduct}>
                         <Modal.Body>
 
                             <div className="row">
-                                <div className="col-lg-6">
+                                <div className="col-lg-12">
                                     <div className="mb-3">
                                         <FormField label="Name" onChange={handleChange} value={formData.name}
                                                    name="name" id="name"/>
                                     </div>
                                 </div>
-                                <div className="col-lg-6">
-                                    <div className="mb-3">
-                                        <FormField label="Email" onChange={handleChange} value={formData.email}
-                                                   name="email" id="email"/>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mb-3">
-                                <FormField label="Phone" name="phone" onChange={handleChange}
-                                           value={formData.phone}
-                                           id="phone"/>
-                            </div>
-                            <div className="mb-3">
-                                <FormField label="Address" name="address" type="textarea" onChange={handleChange}
-                                           value={formData.address}
-                                           id="address"/>
                             </div>
 
                         </Modal.Body>
@@ -354,4 +327,4 @@ function Users() {
     );
 }
 
-export default Users;
+export default Brands;

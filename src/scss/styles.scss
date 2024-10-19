@@ -86,3 +86,13 @@ body{
   border-radius: 50%;
   display: inline-block;
 }
+.page-item.active .page-link {
+  z-index: 3;
+  color: #fff;
+  background-color: $primary!important;
+  border-color: #007bff;
+}
+.scrollbar::-webkit-scrollbar {
+  width: 2rem;
+    height: 2rem;
+}

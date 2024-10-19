@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import {TbAsterisk} from "react-icons/tb";
 import {FaAsterisk} from "react-icons/fa6";
 
-const FormField = ({label, id, name, value, error, onChange, accept, isRequired = true, type = 'text', ...props}) => {
+const FormField = ({label, id, name, value, error, onChange,placeholder,suffix, accept,extraClass, isRequired = true, type = 'text', ...props}) => {
     const InputComponent = type === 'textarea' ? 'textarea' : 'input';
 
     return (
@@ -18,14 +18,18 @@ const FormField = ({label, id, name, value, error, onChange, accept, isRequired 
             {/* Input field or textarea */}
             <InputComponent
                 value={value}
-                className={`form-control focus:tw-ring-0 tw-py-3 ${error ? 'is-invalid' : ''}`}
+                className={`form-control focus:tw-ring-0 ${extraClass} tw-py-3 ${error ? 'is-invalid' : ''}`}
                 onChange={onChange}
                 id={id}
+                placeholder={placeholder}
                 name={name}
                 {...props}
                 type={type}
                 accept={accept}
             />
+            {suffix && <div className="input-group-append">
+                <span className="input-group-text">{suffix}</span>
+            </div>}
 
             {/* Error message */}
             <ErrorMessage error={error}/>
@@ -44,5 +48,6 @@ FormField.propTypes = {
     onChange: PropTypes.func,
     type: PropTypes.string,
     accept: PropTypes.string,
-    isRequired: PropTypes.bool
+    isRequired: PropTypes.bool,
+    extraClass:PropTypes.string
 };

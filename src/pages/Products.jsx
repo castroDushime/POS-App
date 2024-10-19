@@ -17,55 +17,40 @@ import {fetchBranches, loadRoles} from "../services/authService.js";
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
 
-function Users() {
+function Products() {
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [users, setUsers] = useState([]);
+    const [products, setProducts] = useState([]);
     const [search, setSearch] = useState('');
     const pageSize = 10;
-    const [branches, setBranches] = useState([]);
-    const [roles, setRoles] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [formData, setFormData] = useState({
         name: "",
-        email: "",
-        phone: "",
-        address: "",
+        unitId: "",
+        brandId: "",
+        code: "",
+        price: "",
+        categoryId: "",
+        note: "",
     });
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(null);
 
-    const fetchUsers = () => {
+    const fetchProducts = () => {
         setIsLoading(true);
-        http.get("/suppliers")
+        http.get("/products")
             .then((res) => {
                 console.log(res);
                 let data = res.data;
-                setUsers(data);
+                setProducts(data);
             }).catch(() => {
 
         })
             .finally(() => {
                 setIsLoading(false);
             });
-    }
-    const loadBranches = () => {
-        fetchBranches().then((res) => {
-            console.log(res);
-            setBranches(res);
-        }).catch(() => {
-            console.log("Error fetching branches");
-        });
-    }
-    const fetchRoles = () => {
-        setIsLoading(true);
-        loadRoles().then((res) => {
-            setIsLoading(false);
-            setRoles(res);
-        }).catch(() => {
-            console.log("Error fetching roles");
-        });
     }
     const handleChange = (e) => {
         setFormData({
@@ -80,45 +65,47 @@ function Users() {
         setIsEditMode(false);
         setFormData({
             name: "",
-            email: "",
-            phone: "",
-            address: "",
+            unitId: "",
+            brandId: "",
+            code: "",
+            price: "",
+            categoryId: "",
+            note: "",
         });
     };
     const getPagedData = () => {
-        let filtered = users;
+        let filtered = products;
         if (search) {
-            filtered = filtered.filter((user) =>
-                (user.name.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.email.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.phone.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.address.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.branch.name.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.user.name.toLowerCase() || '').includes(search.toLowerCase())
+            filtered = filtered.filter((product) =>
+                (product.name.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (product.code.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (product.status.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (product.note.toLowerCase() || '').includes(search.toLowerCase())
             );
         }
         const paginated = paginate(filtered, currentPage, pageSize)
         return {totalCount: filtered.length, data: paginated}
     }
-    const {totalCount, data: paginatedUsers} = getPagedData();
-    const from = paginatedUsers.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
+    const {totalCount, data: paginatedProducts} = getPagedData();
+    const from = paginatedProducts.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
     const to = Math.min((currentPage * pageSize), totalCount);
 
-    const handleEdit = (user) => {
+    const handleEdit = (product) => {
         setFormData({
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            address: user.address,
-            password: ""
+            name: product.name,
+            code: product.code,
+            unitId: product.unitId,
+            supplierId: product.supplierId,
+            note: formData.address,
+            status: product.status
         });
-        setSelectedUserId(user.id);
+        setSelectedUserId(product.id);
         setIsEditMode(true);
         setShowModal(true);
     };
 
 
-    const handleDelete = (userId) => {
+    const handleDelete = (productId) => {
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
                 confirmButton: "btn btn-primary text-white me-2",
@@ -137,11 +124,11 @@ function Users() {
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                http.delete(`/suppliers/${userId}`)
+                http.delete(`/products/${productId}`)
                     .then((res) => {
                         console.log(res);
                         toast.success(res.data.message);
-                        fetchUsers();
+                        fetchProducts();
                     }).catch((error) => {
                     console.log(error);
                     toast.error(error.response.data.message);
@@ -161,16 +148,32 @@ function Users() {
             }
         });
     };
+    const fetchCategories = () => {
+        setIsLoading(true);
+        http.get("/categories")
+            .then((res) => {
+                console.log(res);
+                let data = res.data;
+                setCategories(data);
+            }).catch(() => {
 
-    const saveUser = (e) => {
+        })
+            .finally(() => {
+                setIsLoading(false);
+            });
+    }
+
+    const saveProduct = (e) => {
         e.preventDefault();
-        const url = isEditMode ? `/suppliers/${selectedUserId}` : "/suppliers";
+        const url = isEditMode ? `/products/${selectedUserId}` : "/products";
         const method = isEditMode ? "put" : "post";
         http[method](url, {
             name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
+            code: formData.email,
+            units: formData.phone,
+            status: "pending",
+            note: formData.address,
+            supplierId: formData.supplier
         }).then((res) => {
             console.log(res);
             toast.success(res.data.message);
@@ -178,7 +181,7 @@ function Users() {
             console.log(error);
         }).finally(() => {
             handleCloseModal();
-            fetchUsers();
+            fetchProducts();
         });
     }
 
@@ -189,13 +192,12 @@ function Users() {
     }
 
     useEffect(() => {
-        fetchUsers();
-        loadBranches();
-        fetchRoles();
+        fetchProducts();
+        fetchCategories();
     }, []);
     useEffect(() => {
 
-        setActiveLinkGlobal("user");
+        setActiveLinkGlobal("products");
     }, [setActiveLinkGlobal]);
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
@@ -215,7 +217,7 @@ function Users() {
                         <li className="breadcrumb-item"><Link to="/">Home</Link></li>
                         <li className="breadcrumb-item"><Link to="/admin/dashboard">Dashboard</Link></li>
                         <li className="breadcrumb-item active" aria-current="page">
-                            Suppliers
+                            Products
                         </li>
                     </ol>
                 </nav>
@@ -224,7 +226,7 @@ function Users() {
                     <div className="col-12">
                         <div className="card">
                             <div className="card-body">
-                                <h5 className="card-title my-3">All Suppliers</h5>
+                                <h5 className="card-title my-3">All Products</h5>
                                 <div className="d-flex mb-3 justify-content-between align-items-center">
                                     <div className="col-lg-4 mb-2">
                                         <FormField type="text" isRequired={false}
@@ -235,7 +237,7 @@ function Users() {
                                     <button className="btn tw-py-3 px-4 text-white btn-primary"
                                             onClick={handleShowModal}>
                                         <BsPlus/>
-                                        Add Supplier
+                                        Add Product
                                     </button>
                                 </div>
                                 <Table hover responsive>
@@ -245,11 +247,10 @@ function Users() {
                                     <Th column="Created At"/>
 
                                     <Th column="Name"/>
-                                    <Th column="Email"/>
-                                    <Th column="Phone"/>
-                                    <Th column="Address"/>
-                                    <Th column="Branch"/>
-                                    <Th column="Created By"/>
+                                    <Th column="Code"/>
+                                    <Th column="Unit"/>
+                                    <Th column="Status"/>
+                                    <Th column="Description"/>
                                     <th className="border-top-0 border-0 border border-primary cursor-pointer">
                                         <div
                                             className="d-flex align-items-center tw-bg-gray-100 tw-text-gray-400 justify-content-center h-100 tw-py-3 mx-0 fw-normal tw-bg-opacity-70 pe-2">
@@ -259,15 +260,18 @@ function Users() {
                                     </thead>
                                     <tbody>
                                     {
-                                        paginatedUsers.map((user, index) => (
+                                        paginatedProducts.map((user, index) => (
                                             <tr key={index}>
                                                 <td className="tw-text-xs">{format(new Date(user.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
                                                 <td className="tw-text-xs">{user.name}</td>
-                                                <td className="tw-text-xs">{user.email}</td>
-                                                <td className="tw-text-xs">{user.phone}</td>
-                                                <td className="tw-text-xs">{user.address}</td>
-                                                <td className="tw-text-xs">{user.branch.name}</td>
-                                                <td className="tw-text-xs">{user.user.name}</td>
+                                                <td className="tw-text-xs">{user.code}</td>
+                                                <td className="tw-text-xs">{user.units}</td>
+                                                <td className="tw-text-xs">
+                                                    <span
+                                                        className={`badge bg-${user.status === 'active' ? 'success' : 'danger'}`}>{user.status}</span>
+
+                                                </td>
+                                                <td className="tw-text-xs">{user.note}</td>
                                                 <td className="tw-text-xs">
                                                     <Dropdown>
                                                         <Dropdown.Toggle variant="primary" className="tw-text-white"
@@ -291,7 +295,7 @@ function Users() {
                                 <div className="align-items-center d-flex justify-content-between">
                                     <div>
                                         <span
-                                            className="tw-text-gray-500">Showing {from} to {to} of {users?.length} entries</span>
+                                            className="tw-text-gray-500">Showing {from} to {to} of {products?.length} entries</span>
                                     </div>
                                     <AppPagination
                                         total={totalCount}
@@ -307,9 +311,9 @@ function Users() {
 
                 <Modal show={showModal} size="lg" onHide={handleCloseModal}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{isEditMode ? "Edit Supplier" : "Add New Supplier"}</Modal.Title>
+                        <Modal.Title>{isEditMode ? "Edit Product" : "Add New Product"}</Modal.Title>
                     </Modal.Header>
-                    <Form onSubmit={saveUser}>
+                    <Form onSubmit={saveProduct}>
                         <Modal.Body>
 
                             <div className="row">
@@ -321,18 +325,32 @@ function Users() {
                                 </div>
                                 <div className="col-lg-6">
                                     <div className="mb-3">
-                                        <FormField label="Email" onChange={handleChange} value={formData.email}
+                                        <FormField label="Code" onChange={handleChange} value={formData.email}
                                                    name="email" id="email"/>
                                     </div>
                                 </div>
                             </div>
                             <div className="mb-3">
-                                <FormField label="Phone" name="phone" onChange={handleChange}
+                                <FormField label="Units" name="phone" onChange={handleChange}
                                            value={formData.phone}
                                            id="phone"/>
                             </div>
                             <div className="mb-3">
-                                <FormField label="Address" name="address" type="textarea" onChange={handleChange}
+                                <label htmlFor="role" className="form-label">
+                                    Category <FaAsterisk className="text-danger ms-1" size={10}/>
+                                </label>
+                                <select className="form-select tw-py-3" onChange={handleChange} name="category"
+                                        value={formData.category} aria-label="Default select example">
+                                    <option value="" disabled>Select Category</option>
+                                    {
+                                        categories.map((cat, index) => (
+                                            <option key={index} value={cat.id}>{cat.name}</option>
+                                        ))
+                                    }
+                                </select>
+                            </div>
+                            <div className="mb-3">
+                                <FormField label="Notes" name="address" type="textarea" onChange={handleChange}
                                            value={formData.address}
                                            id="address"/>
                             </div>
@@ -354,4 +372,4 @@ function Users() {
     );
 }
 
-export default Users;
+export default Products;

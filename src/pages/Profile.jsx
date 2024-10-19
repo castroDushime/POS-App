@@ -1,79 +1,16 @@
 import {Container, Row, Col, Card, Button} from 'react-bootstrap';
-// import {getCurrentUser, setUser} from "../../services/authService.js";
-// import {useEffect, useState} from "react";
-// import FormField from "../../components/common/FormField.jsx";
-// import Joi from "joi";
+
 import {Link} from "react-router-dom";
 import FormField from "../components/common/FormField.jsx";
-// import httpService from "../../services/httpService.js";
-// import {toast} from "react-toastify";
-// import {useAuth} from "../../providers/AuthProvider.jsx";
+import {useProfile} from "../providers/AuthProvider.jsx";
 
-// const validationSchema = Joi.object({
-//     name: Joi.string().required().label("Name"),
-// });
 
 const Profile = () => {
-    // const auth = useAuth();
-    // const user = getCurrentUser();
-    // const [errors, setErrors] = useState({});
-    // const [submitting, setSubmitting] = useState(false);
-    // const [isLoading, setIsLoading] = useState(false);
-    // const [formData, setFormData] = useState({
-    //     name: user.name,
-    // });
-    // const [profile, setProfile] = useState({});
-    //
-    // const handleChange = (e) => {
-    //     setFormData({
-    //         ...formData, [e.target.name]: e.target.value,
-    //     });
-    // }
-    // const initials = user.name.split(" ").map((n) => n[0]).join("");
-    //
-    // const fetchProfile = () => {
-    //     setIsLoading(true);
-    //     httpService.get("/applicants/profile")
-    //         .then((res) => {
-    //             let data = res.data;
-    //             setProfile(data);
-    //             setFormData({
-    //                 name: data.name,
-    //             })
-    //         }).catch(() => {
-    //
-    //     })
-    //         .finally(() => {
-    //             setIsLoading(false);
-    //         });
-    // }
-    // useEffect(() => {
-    //     fetchProfile();
-    // }, []);
-    // const handleSubmit = (e) => {
-    //     e.preventDefault();
-    //     const {error} = validationSchema.validate(formData, {abortEarly: false});
-    //     if (error) {
-    //         const errors = {};
-    //         for (let item of error.details) {
-    //             errors[item.path[0]] = item.message;
-    //         }
-    //         setErrors(errors);
-    //         return;
-    //     }
-    //     setSubmitting(true);
-    //     httpService.put(`/applicants/update-profile?name=${formData.name}`).then(() => {
-    //         toast("Profile updated successfully", {type: "success", theme: "colored"});
-    //         auth.setUserData({...user, name: formData.name,phone: profile.phone,id: profile.id});
-    //     }).catch(() => {
-    //
-    //     }).finally(() => {
-    //         setSubmitting(false);
-    //     });
-    //
-    // }
+    const user = useProfile();
 
-    return (<Container fluid={true} className="">
+
+
+    return (<Container fluid={true} className="min-vh-100">
         <nav aria-label="breadcrumb" className="bg-light mb-3 px-3 py-2 rounded">
             <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item"><Link to="/">Home</Link></li>
@@ -105,13 +42,20 @@ const Profile = () => {
                             <div
                                 className="d-flex align-items-center tw-text-2xl fw-semibold justify-content-center rounded-circle bg-primary-subtle text-primary border border-primary-subtle tw-h-40 tw-w-40">
                                 {/*{initials}*/}
+                                {
+                                    user?.user?.name.split(" ").map((n) => n[0]).join("")
+                                }
                             </div>
                             <div className="text-center mt-3">
                                 <h2>
-                                    Castro
+                                    {
+                                        user?.user?.name
+                                    }
                                 </h2>
                                 <p className="text-muted">
-                                    Admin
+                                    {
+                                        user?.user?.role?.name
+                                    }
                                 </p>
                             </div>
                         </div>
@@ -119,22 +63,22 @@ const Profile = () => {
                         <div className="row">
                                 <div className="mb-3 col-lg-6">
                                     <label className="form-label">First Name</label>
-                                    <input type="text" className="form-control" value="Dushimimana"
+                                    <input type="text" className="form-control" value={user?.user?.name?.split(" ")[0]}
                                            disabled/>
                                 </div>
                                 <div className="mb-3 col-lg-6">
                                     <label className="form-label">Last Name</label>
-                                    <input type="text" className="form-control" value="Eric" disabled/>
+                                    <input type="text" className="form-control" value={user?.user?.name?.split(" ")[+1]} disabled/>
                                 </div>
                             </div>
                         <div>
                             <div className="mb-3">
                                 <label className="form-label">Email</label>
-                                <input type="text" className="form-control" value="dushimeeric26@gmail.com" disabled/>
+                                <input type="text" className="form-control" value={user?.user?.email} disabled/>
                             </div>
                             <div className="mb-3">
-                                <label className="form-label">Phone</label>
-                                <input type="text" className="form-control" value="0780007101" disabled/>
+                                <label className="form-label">Branch</label>
+                                <input type="text" className="form-control" value={user?.user?.branch?.name} disabled/>
                             </div>
                         </div>
 

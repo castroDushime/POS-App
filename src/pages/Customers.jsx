@@ -17,7 +17,7 @@ import {fetchBranches, loadRoles} from "../services/authService.js";
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
 
-function Users() {
+function Customers() {
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
@@ -38,7 +38,7 @@ function Users() {
 
     const fetchUsers = () => {
         setIsLoading(true);
-        http.get("/suppliers")
+        http.get("/customers")
             .then((res) => {
                 console.log(res);
                 let data = res.data;
@@ -137,7 +137,7 @@ function Users() {
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                http.delete(`/suppliers/${userId}`)
+                http.delete(`/customers/${userId}`)
                     .then((res) => {
                         console.log(res);
                         toast.success(res.data.message);
@@ -164,7 +164,7 @@ function Users() {
 
     const saveUser = (e) => {
         e.preventDefault();
-        const url = isEditMode ? `/suppliers/${selectedUserId}` : "/suppliers";
+        const url = isEditMode ? `/customers/${selectedUserId}` : "/customers";
         const method = isEditMode ? "put" : "post";
         http[method](url, {
             name: formData.name,
@@ -195,7 +195,7 @@ function Users() {
     }, []);
     useEffect(() => {
 
-        setActiveLinkGlobal("user");
+        setActiveLinkGlobal("customers");
     }, [setActiveLinkGlobal]);
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
@@ -224,7 +224,7 @@ function Users() {
                     <div className="col-12">
                         <div className="card">
                             <div className="card-body">
-                                <h5 className="card-title my-3">All Suppliers</h5>
+                                <h5 className="card-title my-3">All Customers</h5>
                                 <div className="d-flex mb-3 justify-content-between align-items-center">
                                     <div className="col-lg-4 mb-2">
                                         <FormField type="text" isRequired={false}
@@ -235,7 +235,7 @@ function Users() {
                                     <button className="btn tw-py-3 px-4 text-white btn-primary"
                                             onClick={handleShowModal}>
                                         <BsPlus/>
-                                        Add Supplier
+                                        Add Customer
                                     </button>
                                 </div>
                                 <Table hover responsive>
@@ -307,7 +307,7 @@ function Users() {
 
                 <Modal show={showModal} size="lg" onHide={handleCloseModal}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{isEditMode ? "Edit Supplier" : "Add New Supplier"}</Modal.Title>
+                        <Modal.Title>{isEditMode ? "Edit Customer" : "Add New Customer"}</Modal.Title>
                     </Modal.Header>
                     <Form onSubmit={saveUser}>
                         <Modal.Body>
@@ -354,4 +354,4 @@ function Users() {
     );
 }
 
-export default Users;
+export default Customers;

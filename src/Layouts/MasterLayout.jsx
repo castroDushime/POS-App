@@ -27,16 +27,17 @@ export default function MasterLayout() {
                         className={`d-flex flex-column justify-content-between  tw-min-h-screen  ${isOpen ? 'rounded-end-0' : 'rounded-0'} w-100`}>
                         <TopNav toggle={toggle} isOpen={isOpen}/>
                         {/* main */}
-                        <main className="flex-grow-1  tw-w-full ">
+                        <main className="flex-grow-1 bg-white  tw-w-full ">
                             <div className="  rounded-0">
-                                <div className="bg-white  d-flex flex-column justify-content-between min-vh-100 ">
+                                <div className="bg-light   d-flex flex-column justify-content-between min-vh-100 ">
                                     <Outlet/>
-                                    <div>
-                                        <Footer/>
-                                    </div>
+
                                 </div>
                             </div>
                         </main>
+                        <div>
+                            <Footer/>
+                        </div>
                     </div>
                 </div>
             </Container>

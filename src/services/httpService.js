@@ -2,45 +2,45 @@ import axios from "axios";
 import {toast} from "react-toastify";
 import {jwtDecode} from "jwt-decode";
 import {getCurrentUser, getJwt, logout} from "./authService.js";
+import Cookies from "js-cookie";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
-const apiToken = import.meta.env.VITE_APP_API_TOKEN;
+// const apiToken = import.meta.env.VITE_APP_API_TOKEN;
 
 const http = axios.create({
     baseURL: apiUrl + '/api',
 });
 
 http.interceptors.request.use(config => {
-    let user = getCurrentUser();
-    config.headers["api-token"] = apiToken;
+    // let user = getCurrentUser();
+    // // config.headers["api-token"] = apiToken;
+    //
+    // const jwt = getJwt();z
+    // console.log("JWT Token:", jwt); // Debugging line
+    config.withCredentials = true;
 
-    const jwt = getJwt();
-    console.log("JWT Token:", jwt); // Debugging line
+    // if (jwt) {
+    //     config.headers.Authorization = `Bearer ${jwt}`;
+    // }
 
-    if (jwt) {
-        config.headers.Authorization = `Bearer ${jwt}`;
-    }
-
-    try {
-        let decodedToken = jwtDecode(jwt);
-        console.log("Decoded Token:", decodedToken); // Debugging line
-
-        let exp = decodedToken.exp;
-        let now = new Date().getTime() / 1000;
-        console.log("Token Expiration:", exp, "Current Time:", now); // Debugging line
-
-        if (exp < now) {
-            localStorage.setItem('attemptedUrl', window.location.href);
-            logout();
-            toast.error("Please login again.", {
-                theme: "colored", position: "bottom-right",
-            });
-            window.location = "/";
-        }
-    } catch (e) {
-        console.error("Error decoding token:", e); // Debugging line
-        return config;
-    }
+    // try {
+    //     let decodedToken = jwtDecode(jwt);// Debugging line
+    //
+    //     let exp = decodedToken.exp;
+    //     let now = new Date().getTime() / 1000; // Debugging line
+    //
+    //     if (exp < now) {
+    //         localStorage.setItem('attemptedUrl', window.location.href);
+    //         logout();
+    //         toast.error("Please login again.", {
+    //             theme: "colored", position: "bottom-right",
+    //         });
+    //         window.location = "/";
+    //     }
+    // } catch (e) {
+    //     console.error("Error decoding token:", e); // Debugging line
+    //     return config;
+    // }
 
     return config;
 }, error => {

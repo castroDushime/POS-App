@@ -1,21 +1,26 @@
 import http from "./httpService";
 import {decryptData, encryptData} from "./cryptoService.js";
+import Cookies from "js-cookie";
 
 
 const tokenKey = 'token';
 export function login(body) {
-    return http.post(`/auth/login`, body)
+    return http.post(`/auth/login`, body,{ withCredentials: true })
         .then(({data}) => {
-            if (data.action === 1) {
-                const token = data.token;
-                if (token) loginWithJwt(token);
-                document.cookie = `token=${token}; path=/;`;
-                setUser(data);
 
-            }
 
-            console.log(data);
-
+            return data;
+        });
+}
+export function fetchBranches() {
+    return http.get(`/branches`)
+        .then(({data}) => {
+            return data;
+        });
+}
+export function loadRoles() {
+    return http.get(`/roles`)
+        .then(({data}) => {
             return data;
         });
 }
@@ -59,15 +64,7 @@ export function getToken(token) {
     return token;
 }
 
-export function resendOtp(customerId) {
-    return http.post(`/customer/registered/resend-otp`, customerId).then(({data}) => {
-        if (data.action === 1) {
-            return data;
-        } else {
-            return Promise.reject(data);
-        }
-    })
-}
+
 
 export function loginWithJwt(token) {
     const encryptedToken = encryptData(token);
@@ -80,9 +77,13 @@ export function setUser(user) {
 }
 
 export function logout() {
-    localStorage.removeItem(tokenKey);
-    localStorage.removeItem('user');
+    http.get('/auth/logout').then(({data}) => {
+        setUser(data);
+    }).catch((error) => {
+        console.log(error);
+    });
 }
+
 
 
 export function getCurrentUser() {
@@ -130,12 +131,13 @@ let exports = {
     login,
     logout,
     getCurrentUser,
+    fetchBranches,
     loginWithJwt,
     getJwt,
+    loadRoles,
     isLoggedIn,
     generateOTP,
     verifyOtp,
-    resendOtp,
     changeInitialPassword
 };
 export default exports;

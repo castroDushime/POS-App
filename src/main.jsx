@@ -7,17 +7,21 @@ import './scss/styles.scss'
 import {ToastContainer} from "react-toastify";
 import PageLoader from "./Layouts/PageLoader.jsx";
 import {ActiveLinkProvider} from "./providers/ActiveLinkProvider.jsx";
+import {AuthProvider} from "./providers/AuthProvider.jsx";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <React.StrictMode>
+
         <ActiveLinkProvider>
-        <Router>
-            <Suspense fallback={<PageLoader/>}>
-                <App/>
-            </Suspense>
-            <ToastContainer/>
-        </Router>
+            <Router>
+                <AuthProvider>
+                    <Suspense fallback={<PageLoader/>}>
+                        <App/>
+                    </Suspense>
+                </AuthProvider>
+                <ToastContainer/>
+            </Router>
         </ActiveLinkProvider>
     </React.StrictMode>
 );

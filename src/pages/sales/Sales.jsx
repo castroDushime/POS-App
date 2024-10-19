@@ -1,23 +1,23 @@
-import {Container, Table, Pagination, Modal, Button, Form, Dropdown} from "react-bootstrap";
+import {Container, Table,Modal, Button, Form, Dropdown} from "react-bootstrap";
 import {Link} from "react-router-dom";
-import Th from "../components/common/Th.jsx";
+import Th from "../../components/common/Th.jsx";
 import {BsPlus} from "react-icons/bs";
 import {LuEye} from "react-icons/lu";
 import {useEffect, useState} from "react";
-import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
-import FormField from "../components/common/FormField.jsx";
+import {useActiveLink} from "../../providers/ActiveLinkProvider.jsx";
+import FormField from "../../components/common/FormField.jsx";
 import {FaAsterisk} from "react-icons/fa6";
-import http from "../services/httpService.js";
+import http from "../../services/httpService.js";
 import ContentLoader from "react-content-loader";
 import _ from "lodash";
-import AppPagination from "../components/common/AppPagination.jsx";
-import {paginate} from "../components/common/paginate.jsx";
+import AppPagination from "../../components/common/AppPagination.jsx";
+import {paginate} from "../../components/common/paginate.jsx";
 import {format} from 'date-fns';
-import {fetchBranches, loadRoles} from "../services/authService.js";
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
+import AppCard from "../../components/common/AppCard.jsx";
 
-function Users() {
+function Sales() {
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
@@ -38,7 +38,7 @@ function Users() {
 
     const fetchUsers = () => {
         setIsLoading(true);
-        http.get("/suppliers")
+        http.get("/customers")
             .then((res) => {
                 console.log(res);
                 let data = res.data;
@@ -50,23 +50,7 @@ function Users() {
                 setIsLoading(false);
             });
     }
-    const loadBranches = () => {
-        fetchBranches().then((res) => {
-            console.log(res);
-            setBranches(res);
-        }).catch(() => {
-            console.log("Error fetching branches");
-        });
-    }
-    const fetchRoles = () => {
-        setIsLoading(true);
-        loadRoles().then((res) => {
-            setIsLoading(false);
-            setRoles(res);
-        }).catch(() => {
-            console.log("Error fetching roles");
-        });
-    }
+
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -74,7 +58,9 @@ function Users() {
         });
     }
 
-    const handleShowModal = () => setShowModal(true);
+    const handleShowModal = () => {
+        window.location.href='/admin/create-sale';
+    };
     const handleCloseModal = () => {
         setShowModal(false);
         setIsEditMode(false);
@@ -137,7 +123,7 @@ function Users() {
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                http.delete(`/suppliers/${userId}`)
+                http.delete(`/customers/${userId}`)
                     .then((res) => {
                         console.log(res);
                         toast.success(res.data.message);
@@ -164,7 +150,7 @@ function Users() {
 
     const saveUser = (e) => {
         e.preventDefault();
-        const url = isEditMode ? `/suppliers/${selectedUserId}` : "/suppliers";
+        const url = isEditMode ? `/customers/${selectedUserId}` : "/customers";
         const method = isEditMode ? "put" : "post";
         http[method](url, {
             name: formData.name,
@@ -190,12 +176,10 @@ function Users() {
 
     useEffect(() => {
         fetchUsers();
-        loadBranches();
-        fetchRoles();
     }, []);
     useEffect(() => {
 
-        setActiveLinkGlobal("user");
+        setActiveLinkGlobal("sales");
     }, [setActiveLinkGlobal]);
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
@@ -215,16 +199,16 @@ function Users() {
                         <li className="breadcrumb-item"><Link to="/">Home</Link></li>
                         <li className="breadcrumb-item"><Link to="/admin/dashboard">Dashboard</Link></li>
                         <li className="breadcrumb-item active" aria-current="page">
-                            Suppliers
+                            Sales
                         </li>
                     </ol>
                 </nav>
                 <h5 className="my-4"></h5>
                 <div className="row">
                     <div className="col-12">
-                        <div className="card">
-                            <div className="card-body">
-                                <h5 className="card-title my-3">All Suppliers</h5>
+                        <AppCard>
+                            <div className="">
+                                <h5 className="card-title my-3">Sales</h5>
                                 <div className="d-flex mb-3 justify-content-between align-items-center">
                                     <div className="col-lg-4 mb-2">
                                         <FormField type="text" isRequired={false}
@@ -234,8 +218,7 @@ function Users() {
                                     </div>
                                     <button className="btn tw-py-3 px-4 text-white btn-primary"
                                             onClick={handleShowModal}>
-                                        <BsPlus/>
-                                        Add Supplier
+                                        Create Sale
                                     </button>
                                 </div>
                                 <Table hover responsive>
@@ -244,12 +227,12 @@ function Users() {
                                         style={{borderRadius: "20"}}>
                                     <Th column="Created At"/>
 
-                                    <Th column="Name"/>
-                                    <Th column="Email"/>
-                                    <Th column="Phone"/>
-                                    <Th column="Address"/>
+                                    <Th column="Reference"/>
+                                    <Th column="Customer"/>
                                     <Th column="Branch"/>
-                                    <Th column="Created By"/>
+                                    <Th column="Status"/>
+                                    <Th column="Grand Total"/>
+                                    <Th column="Paid"/>
                                     <th className="border-top-0 border-0 border border-primary cursor-pointer">
                                         <div
                                             className="d-flex align-items-center tw-bg-gray-100 tw-text-gray-400 justify-content-center h-100 tw-py-3 mx-0 fw-normal tw-bg-opacity-70 pe-2">
@@ -301,13 +284,13 @@ function Users() {
                                     />
                                 </div>
                             </div>
-                        </div>
+                        </AppCard>
                     </div>
                 </div>
 
                 <Modal show={showModal} size="lg" onHide={handleCloseModal}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{isEditMode ? "Edit Supplier" : "Add New Supplier"}</Modal.Title>
+                        <Modal.Title>{isEditMode ? "Edit Customer" : "Add New Customer"}</Modal.Title>
                     </Modal.Header>
                     <Form onSubmit={saveUser}>
                         <Modal.Body>
@@ -354,4 +337,4 @@ function Users() {
     );
 }
 
-export default Users;
+export default Sales;

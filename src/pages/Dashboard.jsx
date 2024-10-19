@@ -103,18 +103,18 @@ function Dashboard() {
                                         <li className="text-muted ">
                                             <span className="legend-icon text-muted"
                                                   style={{backgroundColor: '#F0C252', borderRadius: '20px'}}></span>
-                                            Sick Leave
+                                             Sick Leave
                                         </li>
 
                                         <li className="text-muted ">
                                             <span className="legend-icon text-muted"
                                                   style={{backgroundColor: '#5EAFED'}}></span>
-                                            Day Off
+                                             Day Off
                                         </li>
                                         <li className="text-muted ">
                                             <span className="legend-icon text-muted"
                                                   style={{backgroundColor: '#8252ED', borderRadius: '20px'}}></span>
-                                            On time
+                                             On time
                                         </li>
                                     </ul>
                                 </div>
