@@ -195,7 +195,7 @@ function Users() {
     }, []);
     useEffect(() => {
 
-        setActiveLinkGlobal("user");
+        setActiveLinkGlobal("supp");
     }, [setActiveLinkGlobal]);
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
@@ -248,8 +248,6 @@ function Users() {
                                     <Th column="Email"/>
                                     <Th column="Phone"/>
                                     <Th column="Address"/>
-                                    <Th column="Branch"/>
-                                    <Th column="Created By"/>
                                     <th className="border-top-0 border-0 border border-primary cursor-pointer">
                                         <div
                                             className="d-flex align-items-center tw-bg-gray-100 tw-text-gray-400 justify-content-center h-100 tw-py-3 mx-0 fw-normal tw-bg-opacity-70 pe-2">
@@ -266,8 +264,6 @@ function Users() {
                                                 <td className="tw-text-xs">{user.email}</td>
                                                 <td className="tw-text-xs">{user.phone}</td>
                                                 <td className="tw-text-xs">{user.address}</td>
-                                                <td className="tw-text-xs">{user.branch.name}</td>
-                                                <td className="tw-text-xs">{user.user.name}</td>
                                                 <td className="tw-text-xs">
                                                     <Dropdown>
                                                         <Dropdown.Toggle variant="primary" className="tw-text-white"

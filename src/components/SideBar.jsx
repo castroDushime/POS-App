@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
 import SideBarLink from "./SideBarLink.jsx";
 import {GiExitDoor} from "react-icons/gi";
-import {FaFileInvoiceDollar,  FaUserPlus, FaUsers} from "react-icons/fa";
+import {FaFileInvoiceDollar, FaUserPlus, FaUsers} from "react-icons/fa";
 import {TiHomeOutline} from "react-icons/ti";
 import {IoSettingsOutline} from "react-icons/io5";
 import {BiBarChartAlt2} from "react-icons/bi";
-import {TbDatabaseDollar} from "react-icons/tb";
+import {TbDatabaseDollar, TbUsersGroup} from "react-icons/tb";
 import {FaCartShopping, FaSackDollar, FaScaleBalanced} from "react-icons/fa6";
 import {VscFileSubmodule} from "react-icons/vsc";
 import {HiOutlineMegaphone} from "react-icons/hi2";
@@ -13,45 +13,15 @@ import {Link} from "react-router-dom";
 import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
 import SideBarLinks from "./SideBarLinks.jsx";
 import {SubmenuLinks} from "./SubmenuLinks.jsx";
-import {LuPackageOpen} from "react-icons/lu";
+import {LuPackageOpen, LuUserPlus2} from "react-icons/lu";
 import {IconReceipt} from "@tabler/icons-react";
 import {useProfile} from "../providers/AuthProvider.jsx";
+import {FiShoppingCart} from "react-icons/fi";
+import {PiUsersThreeBold} from "react-icons/pi";
 
 export default function SideBar({isOpen}) {
     const {activeLink} = useActiveLink();
-    const { user } = useProfile();
-    const sideBarLinks = [
-        {path: '/admin/dashboard', text: 'Dashboard', isActive: 'dashboard', icon: TiHomeOutline, title: 'Calendar'},
-        {path: '/admin/warehouse', text: 'Branch', isActive: 'warehouses', icon: GiExitDoor, title: 'Warehouse'},
-        {path: '/admin/sales', text: 'Sales', isActive: "sales", icon: FaCartShopping, title: 'Sales'},
-        {path: '/admin/purchase', text: 'Purchase', isActive: "purchase", icon: IconReceipt, title: 'Purchase'},
-    ];
-    const TeamManagement = [
-        {path: '/', text: 'Performance', isActive: false, icon: BiBarChartAlt2, title: 'Performance'},
-        {path: '/admin/suppliers', text: 'Suppliers', isActive: 'supp', icon: TbDatabaseDollar, title: 'Suppliers'},
-        {path: '/', text: 'Invoices', isActive: false, icon: FaFileInvoiceDollar, title: 'Invoices'},
-        {path: '/', text: 'Employees', isActive: false, icon: FaUsers, title: 'Employees'},
-        {path: '/admin/roles', text: 'Role/Permission', isActive: 'roles', icon: FaUserPlus, title: 'Role/Permission'},
-    ];
-    const Lists = [
-        {path: '/', text: 'Salary Information', isActive: false, icon: FaSackDollar, title: 'Salary Information'},
-        {
-            path: '/',
-            text: 'Compensation Breakdown',
-            isActive: false,
-            icon: FaScaleBalanced,
-            title: 'Compensation Breakdown'
-        },
-        {
-            path: '/',
-            text: 'Project-specific Data',
-            isActive: false,
-            icon: VscFileSubmodule,
-            title: 'Project-specific Data'
-        },
-        {path: '/', text: 'Settings', isActive: false, icon: IoSettingsOutline, title: 'Settings'},
-    ];
-
+    const {user} = useProfile();
 
     return (
         <aside
@@ -73,30 +43,62 @@ export default function SideBar({isOpen}) {
                         </div>
                     </div>
                     <div className="tw-list-none px-1 d-flex flex-column menu-container">
-                        {sideBarLinks.map((link, index) => (
+
+                        <SideBarLink
+                            path='/admin/dashboard'
+                            text="Dashboard"
+                            isActive={activeLink === 'dashboard'}
+                            icon={TiHomeOutline}
+                            title="Dashboard"
+                        />
+                        {
+                            user?.user?.role?.permissions?.includes('manage-branches') &&
                             <SideBarLink
-                                key={index}
-                                path={link.path}
-                                text={link.text}
-                                isActive={activeLink === link.isActive}
-                                icon={link.icon}
-                                title={link.title}
+                                path='/admin/warehouse'
+                                text="Branches"
+                                isActive={activeLink === 'warehouses'}
+                                icon={GiExitDoor}
+                                title="Branches"
                             />
-                        ))}
+                        }
+                        {
+                            user?.user?.role?.permissions?.includes('manage-sales') &&
+                            <SideBarLink
+                                path='/admin/sales'
+                                text="Sales"
+                                isActive={activeLink === 'sales'}
+                                icon={FiShoppingCart}
+                                title="Sales"
+                            />
+                        }
+                        {
+                            user?.user?.role?.permissions?.includes('manage-purchases') &&
+                            <SideBarLink
+                                path='/admin/purchase'
+                                text="Purchases"
+                                isActive={activeLink === 'purchase'}
+                                icon={IconReceipt}
+                                title="Purchases"
+                            />
+                        }
                     </div>
                     {
-                        user?.user?.role?.permissions?.includes('manage-products','manage-product-categories') &&<SideBarLinks icon={LuPackageOpen} text="Products">
+                        user?.user?.role?.permissions?.includes('manage-products', 'manage-product-categories') &&
+                        <SideBarLinks icon={LuPackageOpen} text="Products">
                             {
                                 user?.user?.role?.permissions?.includes('manage-products') &&
-                                <SubmenuLinks path={'/admin/products'} text={'Product'} isActive={activeLink === 'products'}/>
+                                <SubmenuLinks path={'/admin/products'} text={'Product'}
+                                              isActive={activeLink === 'products'}/>
                             }
                             {
                                 user?.user?.role?.permissions?.includes('manage-product-categories') &&
-                                <SubmenuLinks path={'/admin/product-category'} text={'Product Categories'} isActive={activeLink === 'categories'}/>
+                                <SubmenuLinks path={'/admin/product-category'} text={'Product Categories'}
+                                              isActive={activeLink === 'categories'}/>
                             }
                             {
                                 user?.user?.role?.permissions?.includes('manage-brands') &&
-                                <SubmenuLinks path={'/admin/brands'} text={'Brands'} isActive={activeLink === 'brands'}/>
+                                <SubmenuLinks path={'/admin/brands'} text={'Brands'}
+                                              isActive={activeLink === 'brands'}/>
                             }
                             {
                                 user?.user?.role?.permissions?.includes('manage-units') &&
@@ -105,31 +107,45 @@ export default function SideBar({isOpen}) {
                         </SideBarLinks>
                     }
                     <span className="px-3 mb-2 fw-semibold tw-text-gray-400">TEAM MANAGEMENT</span>
-                    {TeamManagement.map((link, index) => (
-                        <SideBarLink
-                            key={index}
-                            path={link.path}
-                            text={link.text}
-                            isActive={activeLink === link.isActive}
-                            icon={link.icon}
-                            title={link.title}
-                        />
-                    ))}
-                    <SideBarLinks icon={FaUsers} text="People">
-                        <SubmenuLinks path={'/admin/users'} text={'Users'} isActive={activeLink === 'user'}/>
-                        <SubmenuLinks  path={'/admin/customers'} text={'Customers'} isActive={activeLink === 'customers'}/>
+                    <SideBarLinks icon={TbUsersGroup  } text="People">
+                        {
+                            user?.user?.role?.permissions?.includes('manage-users') &&
+                            <SubmenuLinks path={'/admin/users'} text={'Users'} isActive={activeLink === 'user'}/>
+                        }
+                        {
+                            user?.user?.role?.permissions?.includes('manage-customers') &&
+                            <SubmenuLinks path={'/admin/customers'} text={'Customers'}
+                                          isActive={activeLink === 'customers'}/>
+                        }
                     </SideBarLinks>
-                    <span className="px-3 mb-2 fw-semibold tw-text-gray-400">Lists</span>
-                    {Lists.map((link, index) => (
+                    {
+                        user?.user?.role?.permissions?.includes('manage-roles') &&
                         <SideBarLink
-                            key={index}
-                            path={link.path}
-                            text={link.text}
-                            isActive={activeLink === link.isActive}
-                            icon={link.icon}
-                            title={link.title}
+                            path='/admin/suppliers'
+                            text="Suppliers"
+                            isActive={activeLink === 'supp'}
+                            icon={TbDatabaseDollar}
+                            title="Suppliers"
                         />
-                    ))}
+                    }
+                    {
+                        user?.user?.role?.permissions?.includes('manage-roles') &&
+                        <SideBarLink
+                            path='/admin/roles'
+                            text="Roles/Permissions"
+                            isActive={activeLink === 'roles'}
+                            icon={LuUserPlus2 }
+                            title="Roles/Permissions"
+                        />
+                    }
+                    <span className="px-3 mb-2 fw-semibold tw-text-gray-400">Lists</span>
+                    <SideBarLink
+                        path='/admin/settings'
+                        text="Settings"
+                        isActive={activeLink === 'settings'}
+                        icon={IoSettingsOutline}
+                        title="Settings"
+                    />
 
                 </div>
                 <div className="text-center p-3  tw-bottom-5 tw-right-0 tw-left-0">

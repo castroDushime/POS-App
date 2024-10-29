@@ -1,21 +1,19 @@
-import {Container, Table, Pagination, Modal, Button, Form, Dropdown} from "react-bootstrap";
+import {Container, Table,Dropdown} from "react-bootstrap";
 import {Link} from "react-router-dom";
 import Th from "../components/common/Th.jsx";
 import {BsPlus} from "react-icons/bs";
-import {LuEye} from "react-icons/lu";
 import {useEffect, useState} from "react";
 import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
 import FormField from "../components/common/FormField.jsx";
-import {FaAsterisk} from "react-icons/fa6";
 import http from "../services/httpService.js";
 import ContentLoader from "react-content-loader";
 import _ from "lodash";
 import AppPagination from "../components/common/AppPagination.jsx";
 import {paginate} from "../components/common/paginate.jsx";
 import {format} from 'date-fns';
-import {fetchBranches, loadRoles} from "../services/authService.js";
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
+import SaveCustomerModel from "../components/SaveCustomerModel.jsx";
 
 function Customers() {
     const {setActiveLinkGlobal} = useActiveLink();
@@ -25,9 +23,7 @@ function Customers() {
     const [users, setUsers] = useState([]);
     const [search, setSearch] = useState('');
     const pageSize = 10;
-    const [branches, setBranches] = useState([]);
-    const [roles, setRoles] = useState([]);
-    const [formData, setFormData] = useState({
+    const [cuFormData, setCuFormData] = useState({
         name: "",
         email: "",
         phone: "",
@@ -36,7 +32,7 @@ function Customers() {
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(null);
 
-    const fetchUsers = () => {
+    const fetchCustomers = () => {
         setIsLoading(true);
         http.get("/customers")
             .then((res) => {
@@ -50,26 +46,9 @@ function Customers() {
                 setIsLoading(false);
             });
     }
-    const loadBranches = () => {
-        fetchBranches().then((res) => {
-            console.log(res);
-            setBranches(res);
-        }).catch(() => {
-            console.log("Error fetching branches");
-        });
-    }
-    const fetchRoles = () => {
-        setIsLoading(true);
-        loadRoles().then((res) => {
-            setIsLoading(false);
-            setRoles(res);
-        }).catch(() => {
-            console.log("Error fetching roles");
-        });
-    }
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
+        setCuFormData({
+            ...cuFormData,
             [e.target.name]: e.target.value
         });
     }
@@ -78,7 +57,7 @@ function Customers() {
     const handleCloseModal = () => {
         setShowModal(false);
         setIsEditMode(false);
-        setFormData({
+        setCuFormData({
             name: "",
             email: "",
             phone: "",
@@ -105,7 +84,7 @@ function Customers() {
     const to = Math.min((currentPage * pageSize), totalCount);
 
     const handleEdit = (user) => {
-        setFormData({
+        setCuFormData({
             name: user.name,
             email: user.email,
             phone: user.phone,
@@ -141,7 +120,7 @@ function Customers() {
                     .then((res) => {
                         console.log(res);
                         toast.success(res.data.message);
-                        fetchUsers();
+                        fetchCustomers();
                     }).catch((error) => {
                     console.log(error);
                     toast.error(error.response.data.message);
@@ -162,26 +141,6 @@ function Customers() {
         });
     };
 
-    const saveUser = (e) => {
-        e.preventDefault();
-        const url = isEditMode ? `/customers/${selectedUserId}` : "/customers";
-        const method = isEditMode ? "put" : "post";
-        http[method](url, {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
-        }).then((res) => {
-            console.log(res);
-            toast.success(res.data.message);
-        }).catch((error) => {
-            console.log(error);
-        }).finally(() => {
-            handleCloseModal();
-            fetchUsers();
-        });
-    }
-
     function handleSearch(event) {
         setSearch(event.target.value);
         console.log("Search state: ", event.target.value); // Add this line
@@ -189,9 +148,7 @@ function Customers() {
     }
 
     useEffect(() => {
-        fetchUsers();
-        loadBranches();
-        fetchRoles();
+        fetchCustomers();
     }, []);
     useEffect(() => {
 
@@ -248,8 +205,6 @@ function Customers() {
                                     <Th column="Email"/>
                                     <Th column="Phone"/>
                                     <Th column="Address"/>
-                                    <Th column="Branch"/>
-                                    <Th column="Created By"/>
                                     <th className="border-top-0 border-0 border border-primary cursor-pointer">
                                         <div
                                             className="d-flex align-items-center tw-bg-gray-100 tw-text-gray-400 justify-content-center h-100 tw-py-3 mx-0 fw-normal tw-bg-opacity-70 pe-2">
@@ -266,8 +221,6 @@ function Customers() {
                                                 <td className="tw-text-xs">{user.email}</td>
                                                 <td className="tw-text-xs">{user.phone}</td>
                                                 <td className="tw-text-xs">{user.address}</td>
-                                                <td className="tw-text-xs">{user.branch.name}</td>
-                                                <td className="tw-text-xs">{user.user.name}</td>
                                                 <td className="tw-text-xs">
                                                     <Dropdown>
                                                         <Dropdown.Toggle variant="primary" className="tw-text-white"
@@ -304,50 +257,15 @@ function Customers() {
                         </div>
                     </div>
                 </div>
-
-                <Modal show={showModal} size="lg" onHide={handleCloseModal}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>{isEditMode ? "Edit Customer" : "Add New Customer"}</Modal.Title>
-                    </Modal.Header>
-                    <Form onSubmit={saveUser}>
-                        <Modal.Body>
-
-                            <div className="row">
-                                <div className="col-lg-6">
-                                    <div className="mb-3">
-                                        <FormField label="Name" onChange={handleChange} value={formData.name}
-                                                   name="name" id="name"/>
-                                    </div>
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="mb-3">
-                                        <FormField label="Email" onChange={handleChange} value={formData.email}
-                                                   name="email" id="email"/>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mb-3">
-                                <FormField label="Phone" name="phone" onChange={handleChange}
-                                           value={formData.phone}
-                                           id="phone"/>
-                            </div>
-                            <div className="mb-3">
-                                <FormField label="Address" name="address" type="textarea" onChange={handleChange}
-                                           value={formData.address}
-                                           id="address"/>
-                            </div>
-
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <Button variant="secondary" onClick={handleCloseModal}>
-                                Close
-                            </Button>
-                            <Button variant="primary" type="submit" className="text-white">
-                                Save
-                            </Button>
-                        </Modal.Footer>
-                    </Form>
-                </Modal>
+                <SaveCustomerModel fetchCustomers={fetchCustomers}
+                                   formData={cuFormData}
+                                   handleChange={handleChange}
+                                   setFormData={setCuFormData}
+                                   isEditMode={isEditMode}
+                                   showModal={showModal}
+                                   selectedUserId={selectedUserId}
+                                   handleCloseModal={handleCloseModal}
+                                   />
             </Container>
         }</div>
 

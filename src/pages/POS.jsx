@@ -1,33 +1,41 @@
-import {Button, Col, Row, Table} from "react-bootstrap";
-import {FaBagShopping, FaHand, FaMagnifyingGlass} from "react-icons/fa6";
+import {Button, Col, ListGroup, Row, Table} from "react-bootstrap";
+import { FaHand, FaMagnifyingGlass} from "react-icons/fa6";
 import Select from "react-select";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 import http from "../services/httpService.js";
-import {BiCalculator, BiReset} from "react-icons/bi";
+import { BiReset} from "react-icons/bi";
 import FormField from "../components/common/FormField.jsx";
-import {AiOutlineFullscreen, AiOutlineMenu} from "react-icons/ai";
 import {GrDashboard} from "react-icons/gr";
 import {Link} from "react-router-dom";
 import BLogo from '../assets/brand_logo.png'
 import {toast} from "react-toastify";
 import {FaMoneyBill} from "react-icons/fa";
-import {ArrowRightCircleIcon} from "@heroicons/react/16/solid/index.js";
 import Td from "../components/common/Td.jsx";
+import {CiCirclePlus} from "react-icons/ci";
+import {FiPlusCircle} from "react-icons/fi";
+import SaveCustomerModel from "../components/SaveCustomerModel.jsx";
 
 
 function Pos() {
     const [products, setProducts] = useState([]);
     const [tableRows, setTableRows] = useState([]);
-    const iframeRef = useRef(null);
     const [selectedProductIds, setSelectedProductIds] = useState([]);
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedBrand, setSelectedBrand] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [customers, setCustomers] = useState([]);
     const [formData, setFormData] = useState({
         tax: '',
         discount: '',
         shipping: ''
+    });
+    const [cuFormData, setCuFormData] = useState({
+        name: "",
+        email: "",
+        phone: "",
+        address: "",
     });
     const fetchProducts = () => {
         http.get("/products")
@@ -41,6 +49,33 @@ function Pos() {
     const handleChange = (e) => {
         const {name, value} = e.target;
         setFormData({...formData, [name]: value});
+        setCuFormData({
+            ...cuFormData,
+            [e.target.name]: e.target.value
+        });
+    }
+
+    const handleShowModal = () => setShowModal(true);
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setCuFormData({
+            name: "",
+            email: "",
+            phone: "",
+            address: "",
+        });
+    };
+    const fetchCustomers = () => {
+        http.get("/customers")
+            .then((res) => {
+                console.log(res);
+                let data = res.data;
+                setCustomers(data);
+            }).catch(({error}) => {
+                console.log(error);
+        })
+            .finally(() => {
+            });
     }
     const fetchCategories = () => {
         http.get("/categories")
@@ -83,31 +118,6 @@ function Pos() {
         setTableRows(newRows);
     };
 
-    function toggleFullScreen(iframeElement) {
-        if (!document.fullscreenElement) {
-            // If not in full screen, enter it
-            if (iframeElement.requestFullscreen) {
-                iframeElement.requestFullscreen();
-            } else if (iframeElement.mozRequestFullScreen) { /* Firefox */
-                iframeElement.mozRequestFullScreen();
-            } else if (iframeElement.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-                iframeElement.webkitRequestFullscreen();
-            } else if (iframeElement.msRequestFullscreen) { /* IE/Edge */
-                iframeElement.msRequestFullscreen();
-            }
-        } else {
-            // If in full screen, exit it
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.mozCancelFullScreen) { /* Firefox */
-                document.mozCancelFullScreen();
-            } else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) { /* IE/Edge */
-                document.msExitFullscreen();
-            }
-        }
-    }
 
     const handleFilterProducts = (selectedItem) => {
         setSelectedCategory(selectedItem);
@@ -116,6 +126,15 @@ function Pos() {
     const handleFilterProductsByBrand = (selectedItem) => {
         setSelectedBrand(selectedItem);
 
+    }
+    const handleSearch = (e) => {
+        let value = e.target.value;
+        if (value) {
+            let filteredProducts = products.filter((product) => product.name.toLowerCase().includes(value.toLowerCase()));
+            setProducts(filteredProducts);
+        } else {
+            fetchProducts();
+        }
     }
     let filteredProducts = selectedCategory||selectedBrand ? products.filter((product) => product.categoryId === selectedCategory && product.brandId === setSelectedBrand) : products;
     let grandTotal = tableRows.reduce((total, row) => total + row.subTotal, 0);
@@ -126,23 +145,25 @@ function Pos() {
     useEffect(() => {
         fetchProducts();
         fetchBrands();
+        fetchCustomers();
         fetchCategories();
     }, []);
     return (
         <div className="tw-bg-blue-200 min-vh-100 tw-bg-opacity-20 card card-body border-0">
             <Row>
                 <Col lg={4}>
-                    <Row>
-                        <Col lg={12}>
+                    <Row className="align-items-center">
+                        <div className="col-8 col-lg-9 col-xxl-10">
                             <div className="mb-2">
                                 <Select
                                     isMulti={false}
                                     name="tags"
                                     options={
-                                        products.map((product) => {
-                                            return {value: product.id, label: product.name}
+                                        customers.map((customer) => {
+                                            return {value: customer.id, label: customer.name}
                                         })
                                     }
+                                    placeholder="Select Customer"
                                     className="basic-multi-select shadow-sm rounded-5"
                                     classNamePrefix="select"
                                     styles={{
@@ -159,7 +180,13 @@ function Pos() {
                                     }}
                                 />
                             </div>
-                        </Col>
+
+                        </div>
+                        <div className="col-4 col-lg-3 col-xxl-2">
+                            <Button onClick={handleShowModal} className="btn mb-2 w-100 rounded-4 tw-py-3 text-white fw-bolder btn-primary">
+                                <FiPlusCircle className="tw-w-8 tw-h-8" />
+                            </Button>
+                        </div>
                     </Row>
                     <div
                         className="card rounded-4 d-flex flex-column justify-content-end overflow-hidden border-0 min-vh-100">
@@ -288,6 +315,11 @@ function Pos() {
                                     <button onClick={() => {
                                         setTableRows([]);
                                         setSelectedProductIds([])
+                                        setFormData({
+                                            tax: '',
+                                            discount: '',
+                                            shipping: ''
+                                        })
                                     }}
                                             className="btn w-100 py-2 btn-danger d-flex align-items-center justify-content-center tw-text-lg">Reset <BiReset/>
                                     </button>
@@ -304,12 +336,13 @@ function Pos() {
                 <Col lg={8}>
                     <Row className="align-items-center mb-2">
                         <Col lg={11}>
-                            <div className="input-group my-lg-3 border-0 ">
-                                <button className="btn bg-white border-0 rounded-start-4 border tw-py-5  border-end-0"
+                            <div className="input-group mb-lg-3 border-0 ">
+                                <button
+                                        className="btn bg-white border-0 rounded-start-4 border tw-py-5  border-end-0"
                                         type="submit">
                                     <FaMagnifyingGlass/>
                                 </button>
-                                <input
+                                <input onChange={handleSearch}
                                     className="form-control  focus:tw-ring-0 border-0 rounded-end-4 focus:tw-border-gray-200 border-start-0 "
                                     type="search" placeholder="Scan/Search product by code name"
                                     aria-label="Search"/>
@@ -317,7 +350,7 @@ function Pos() {
                             </div>
                         </Col>
                         <Col lg={1}>
-                            <div className="d-flex gap-3 my-2">
+                            <div className="d-flex gap-3 mb-2">
                                 {/*<button className="btn rounded-3  tw-text-2xl btn-danger">*/}
                                 {/*    <AiOutlineMenu/>*/}
                                 {/*</button>*/}
@@ -339,59 +372,81 @@ function Pos() {
                         </Col>
                     </Row>
                     <div className="card card-body h-100 border-0 rounded-4 ">
-                        <div className="d-flex gap-3 flex-nowrap tw-overflow-x-scroll  align-items-center  scrollbar">
-                            <button onClick={() => handleFilterProducts(null)}
-                                    className={`btn btn-light tw-tracking-wide ${selectedCategory === null ? 'bg-primary text-white' : ''}  text-nowrap  btn-lg tw-text-sm `}>All
-                                Products
-                            </button>
-                            {
-                                categories.map((category, index) => {
-                                    return <div key={index}>
-                                        <button onClick={() => handleFilterProducts(category.id)}
-                                                className={`btn btn-light tw-tracking-wide ${selectedCategory === category.id ? 'bg-primary text-white' : ''}  text-nowrap  btn-lg tw-text-sm `}>{category.name}</button>
-                                    </div>
-                                })
-                            }
-                        </div>
-                        <div className="d-flex gap-3 flex-nowrap tw-overflow-x-scroll  align-items-center  scrollbar">
-                            <button onClick={() => handleFilterProductsByBrand(null)}
-                                    className={`btn btn-light tw-tracking-wide ${selectedBrand === null ? 'bg-primary text-white' : ''}  text-nowrap  btn-lg tw-text-sm `}>All Brands</button>
-                            {
-                                brands.map((brand, index) => {
-                                    return <div key={index}>
-                                        <button onClick={() => handleFilterProductsByBrand(brand.id)}
-                                                className={`btn btn-light tw-tracking-wide ${selectedBrand === brand.id ? 'bg-primary text-white' : ''}  text-nowrap  btn-lg tw-text-sm `}>{brand.name}</button>
-                                    </div>
-                                })
-                            }
-                        </div>
 
                         <Row>
-                            {filteredProducts.map((product) => (
-                                <Col key={product.id} xs={6} className="mb-3" md={4} lg={3} xl={2}>
-                                    <button
-                                        onClick={() => handleAddRow(product)}
-                                        className={`card shadow-sm h-100 w-100 card-body mb-3 d-flex flex-column align-items-center rounded ${selectedProductIds.includes(product.id) ? 'border border-primary' : ''}`}
-                                    >
-                                        {product?.image ? <img src={product.img} alt="brand logo"/> :
-                                            <img src={BLogo} className="h-75 w-75" alt="brand logo"/>}
-                                        <span className="tw-text-xs">{product.name}</span>
-                                        <div className="d-flex justify-content-between">
-                                            <span className="badge "></span>
+                            <Col lg={4} className="d-flex mb-3 justify-content-between flex-column flex-lg-row">
+                                <ListGroup className="d-flex flex-row gap-1 tw-overflow-y-scroll scrollbar flex-lg-column  ">
+                                    <ListGroup.Item onClick={() => handleFilterProducts(null)} className={` rounded btn border-0   tw-tracking-wide ${selectedCategory === null ? 'bg-primary text-white' : 'bg-light'}  text-nowrap  btn-lg tw-text-sm `}>
+                                        All Products
+                                    </ListGroup.Item>
+                                    {
+                                        categories.map((category, index) => {
+                                            return <div key={index}>
+                                                <ListGroup.Item onClick={() => handleFilterProducts(category.id)}
+                                                                className={`btn btn-light border-0   rounded mb-1  text-start tw-tracking-wide ${selectedCategory === category.id ? 'bg-primary text-white' : 'bg-light'}  text-nowrap  btn-lg tw-text-sm `}>
+                                                    {category.name}
+                                                </ListGroup.Item>
+                                            </div>
+                                        })
+                                    }
+                                </ListGroup>
+                                    <ListGroup className="d-flex flex-row gap-1 tw-overflow-y-scroll scrollbar flex-lg-column ">
+                                        <ListGroup.Item onClick={() => handleFilterProductsByBrand(null)} className={`btn rounded border-0 mb-1  tw-tracking-wide ${selectedBrand === null ? 'bg-primary text-white' : 'bg-light'}  text-nowrap  btn-lg tw-text-sm `}>
+                                           All Brands
+                                        </ListGroup.Item>
+                                        {
+                                            brands.map((brand, index) => {
+                                                return <div key={index}>
+                                                    <ListGroup.Item onClick={() => handleFilterProductsByBrand(brand.id)}
+                                                                    className={`btn btn-light border-0 rounded mb-1  text-start tw-tracking-wide ${selectedBrand === brand.id ? 'bg-primary text-white' : 'bg-light'}  text-nowrap  btn-lg tw-text-sm `}>
+                                                        {brand.name}
+                                                    </ListGroup.Item>
+                                                </div>
+                                            })
+                                        }
+                                    </ListGroup>
+                            </Col>
+                            <Col lg={8}>
+                                <Row>
+                                    {filteredProducts.map((product) => (
+                                        <Col key={product.id} xs={6} className="mb-3" md={3} lg={4} xl={3}>
+                                            <button
+                                                onClick={() => handleAddRow(product)}
+                                                className={`card shadow-sm h-100 w-100 card-body mb-3 d-flex flex-column align-items-center rounded ${selectedProductIds.includes(product.id) ? 'border border-primary' : ''}`}
+                                            >
+                                                {product?.image ? <img src={product.img} alt="brand logo"/> :
+                                                    <img src={BLogo} className="h-75 w-75" alt="brand logo"/>}
+                                                <span className="tw-text-xs">{product.name}</span>
+                                                <div className="d-flex justify-content-between">
+                                                    <span className="badge text-black ">Rwf {product.price}</span>
+                                                    <span className="badge text-black "> {product.quantity}</span>
+                                                </div>
+                                            </button>
+                                        </Col>
+                                    ))}
+                                    {
+                                        filteredProducts.length < 1 &&
+                                        <div className="d-flex my-5  align-items-center  justify-content-center">
+                                            <span className="bg-info-subtle p-4 w-100 text-center rounded-4 tw-text-xl">No Data Available</span>
                                         </div>
-                                    </button>
-                                </Col>
-                            ))}
-                            {
-                                filteredProducts.length < 1 &&
-                                <div className="d-flex  align-items-center  justify-content-center">
-                                    <span className=" tw-text-xl">No Data Available</span>
-                                </div>
-                            }
+                                    }
+                                </Row>
+                            </Col>
                         </Row>
+
+
                     </div>
                 </Col>
             </Row>
+            <SaveCustomerModel fetchCustomers={fetchCustomers}
+                               formData={cuFormData}
+                               handleChange={handleChange}
+                               setFormData={setCuFormData}
+                               isEditMode={false}
+                               showModal={showModal}
+                               selectedUserId={null}
+                               handleCloseModal={handleCloseModal}
+            />
 
         </div>
     );

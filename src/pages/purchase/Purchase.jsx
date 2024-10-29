@@ -19,21 +19,11 @@ import AppCard from "../../components/common/AppCard.jsx";
 
 function Purchase() {
     const {setActiveLinkGlobal} = useActiveLink();
-    const navigate = useNavigate();
     const [currentPage, setCurrentPage] = useState(1);
-    const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [purchases, setPurchases] = useState([]);
     const [search, setSearch] = useState('');
     const pageSize = 10;
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        phone: "",
-        address: "",
-    });
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [selectedPurchaseId, setSelectedPurchaseId] = useState(null);
 
     const fetchPurchases = () => {
         setIsLoading(true);
@@ -50,25 +40,8 @@ function Purchase() {
             });
     }
 
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    }
-
     const handleShowModal = () => {
         window.location.href='/admin/create-purchase';
-    };
-    const handleCloseModal = () => {
-        setShowModal(false);
-        setIsEditMode(false);
-        setFormData({
-            name: "",
-            email: "",
-            phone: "",
-            address: "",
-        });
     };
     const getPagedData = () => {
         let filtered = purchases;
@@ -77,29 +50,16 @@ function Purchase() {
                 (purchase.reference.toLowerCase() || '').includes(search.toLowerCase()) ||
                 (purchase.status.toLowerCase() || '').includes(search.toLowerCase()) ||
                 (purchase.createdAt.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (purchase.totalAmount.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (purchase.totalAmount.toLocaleString() || '').includes(search.toLowerCase()) ||
                 (purchase.supplier.name.toLowerCase() || '').includes(search.toLowerCase())
             );
         }
         const paginated = paginate(filtered, currentPage, pageSize)
         return {totalCount: filtered.length, data: paginated}
     }
-    const {totalCount, data: paginatedpurchases} = getPagedData();
-    const from = paginatedpurchases.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
+    const {totalCount, data: paginatedPurchases} = getPagedData();
+    const from = paginatedPurchases.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
     const to = Math.min((currentPage * pageSize), totalCount);
-
-    const handleEdit = (purchase) => {
-        setFormData({
-            name: purchase.name,
-            email: purchase.email,
-            phone: purchase.phone,
-            address: purchase.address,
-            password: ""
-        });
-        setSelectedPurchaseId(purchase.id);
-        setIsEditMode(true);
-        setShowModal(true);
-    };
 
 
     const handleDelete = (purchaseId) => {
@@ -146,25 +106,7 @@ function Purchase() {
         });
     };
 
-    const savepurchase = (e) => {
-        e.preventDefault();
-        const url = isEditMode ? `/purchases/${selectedPurchaseId}` : "/purchases";
-        const method = isEditMode ? "put" : "post";
-        http[method](url, {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
-        }).then((res) => {
-            console.log(res);
-            toast.success(res.data.message);
-        }).catch((error) => {
-            console.log(error);
-        }).finally(() => {
-            handleCloseModal();
-            fetchPurchases();
-        });
-    }
+
 
     function handleSearch(event) {
         setSearch(event.target.value);
@@ -237,12 +179,12 @@ function Purchase() {
                                 </thead>
                                 <tbody>
                                 {
-                                    paginatedpurchases.map((purchase, index) => (
+                                    paginatedPurchases.map((purchase, index) => (
                                         <tr key={index}>
                                             <td className="tw-text-xs">{format(new Date(purchase.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
                                             <td className="tw-text-xs">{purchase.reference}</td>
                                             <td className="tw-text-xs">{purchase?.supplier?.name}</td>
-                                            <td className="tw-text-xs">Rwf {purchase.totalAmount}</td>
+                                            <td className="tw-text-xs">Rwf {Number(purchase.totalAmount).toLocaleString()}</td>
                                             <td className="tw-text-xs">
                                                 <span
                                                     className={`badge ${purchase.status === 'pending' ? 'bg-warning' : 'bg-success'} rounded-pill`}>{purchase.status}</span>
@@ -283,50 +225,6 @@ function Purchase() {
                         </AppCard>
                     </div>
                 </div>
-
-                <Modal show={showModal} size="lg" onHide={handleCloseModal}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>{isEditMode ? "Edit Customer" : "Add New Customer"}</Modal.Title>
-                    </Modal.Header>
-                    <Form onSubmit={savepurchase}>
-                        <Modal.Body>
-
-                            <div className="row">
-                                <div className="col-lg-6">
-                                    <div className="mb-3">
-                                        <FormField label="Name" onChange={handleChange} value={formData.name}
-                                                   name="name" id="name"/>
-                                    </div>
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="mb-3">
-                                        <FormField label="Email" onChange={handleChange} value={formData.email}
-                                                   name="email" id="email"/>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mb-3">
-                                <FormField label="Phone" name="phone" onChange={handleChange}
-                                           value={formData.phone}
-                                           id="phone"/>
-                            </div>
-                            <div className="mb-3">
-                                <FormField label="Address" name="address" type="textarea" onChange={handleChange}
-                                           value={formData.address}
-                                           id="address"/>
-                            </div>
-
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <Button variant="secondary" onClick={handleCloseModal}>
-                                Close
-                            </Button>
-                            <Button variant="primary" type="submit" className="text-white">
-                                Save
-                            </Button>
-                        </Modal.Footer>
-                    </Form>
-                </Modal>
             </Container>
         }</div>
 

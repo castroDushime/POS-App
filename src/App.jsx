@@ -19,6 +19,7 @@ const CreatePurchase =lazy(()=>import("./pages/purchase/Create.jsx"));
 const POS=lazy(()=>import('./pages/POS.jsx'));
 const Brands=lazy(()=>import('./pages/products/Brands.jsx'));
 const Units=lazy(()=>import('./pages/products/Units.jsx'));
+const Settings=lazy(()=>import('./pages/Settings.jsx'));
 function App() {
     return (
         <Routes>
@@ -37,11 +38,13 @@ function App() {
                 <Route path="product-category" element={<ProductCategory/>}/>
                 <Route path="sales" element={<Sales/>}/>
                 <Route path="create-sale" element={<CreateSale/>}/>
+                <Route path="create-sale/:id" element={<CreateSale/>}/>
                 <Route path="purchase" element={<Purchase/>}/>
                 <Route path="create-purchase" element={<CreatePurchase/>}/>
                 <Route path="create-purchase/:id" element={<CreatePurchase/>}/>
                 <Route path="brands" element={<Brands/>}/>
                 <Route path="units" element={<Units/>}/>
+                <Route path="settings" element={<Settings/>}/>
             </Route>
             <Route path="/admin/pos" element={<POS/>}/>
 

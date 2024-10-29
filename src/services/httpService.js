@@ -71,17 +71,17 @@ http.interceptors.response.use(null, error => {
         } else if (expectedError) {
             let data = error.response.data?.message ?? "An unexpected error occurred.";
             toast.error(data, {
-                theme: "colored", position: "top-right",
+                theme: "light", position: "top-right",
             });
         } else {
             toast.error(error.response.status + ':' + error.response.data?.message, {
-                theme: "colored", position: "top-right",
+                theme: "light", position: "top-right",
             });
         }
     } else {
         console.log('error.response is undefined or null');
         toast.error("An unexpected error occurred.", {
-            theme: "colored", position: "top-right",
+            theme: "light", position: "top-right",
         });
     }
 

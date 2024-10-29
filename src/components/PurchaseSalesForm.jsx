@@ -8,7 +8,7 @@ import {BiTrash} from "react-icons/bi";
 import http from "../services/httpService.js";
 import AppCard from "./common/AppCard.jsx";
 import {useProfile} from "../providers/AuthProvider.jsx";
-import {useLocation,useParams} from 'react-router-dom';
+import {useLocation, useParams} from 'react-router-dom';
 import {AiOutlinePlus} from "react-icons/ai";
 import {IoIosSave} from "react-icons/io";
 import {toast} from "react-toastify";
@@ -19,7 +19,7 @@ function PurchaseSalesForm() {
     const {user} = useProfile();
     const {id} = useParams();
     const location = useLocation();
-    const isCreatePurchase = location.pathname === '/admin/create-purchase'||'/admin/create-purchase/:id';
+    const isCreatePurchase = location.pathname.includes('/admin/create-purchase');
     const [products, setProducts] = useState([]);
     const [customers, setCustomers] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
@@ -32,6 +32,7 @@ function PurchaseSalesForm() {
         discount: '',
         shipping: '',
         note: '',
+        customerId: '',
         items: []
     });
     const [tableRows, setTableRows] = useState([]);
@@ -45,14 +46,14 @@ function PurchaseSalesForm() {
         }).finally(() => {
         });
     }
-    const fetchPurchase = (id) => {
-        http.get(`/purchases/show/${id}`)
+    const url = isCreatePurchase ? `/purchases/show/${id}` : `/sales/show/${id}`;
+    const fetchPurchase = () => {
+        http.get(url)
             .then((res) => {
                 const data = res.data;
-                console.log(data);
                 setFormData({
                     date: data.date,
-                    supplierId: data.supplierId,
+                    [isCreatePurchase ? 'supplierId' : 'customerId']: isCreatePurchase ? data.supplierId : data.customerId,
                     status: data.status,
                     orderTAX: data.orderTAX,
                     discount: data.discount,
@@ -69,7 +70,8 @@ function PurchaseSalesForm() {
                     tax: item.tax,
                     subTotal: item.amount
                 })));
-            }).catch(() => {});
+            }).catch(() => {
+        });
     };
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -79,11 +81,13 @@ function PurchaseSalesForm() {
             quantity: row.qty,
             amount: row.subTotal
         }));
-        const url = id ? `/purchases/${id}` : "/purchases";
+        const salesUrl = id ? `/sales/${id}` : "/sales";
+        const purchaseUrl = id ? `/purchases/${id}` : "/purchases";
+        const url = isCreatePurchase ? purchaseUrl : salesUrl;
         const method = id ? "put" : "post";
         http[method](url, {
             date: formData.date,
-            supplierId: formData.supplierId,
+            [isCreatePurchase ? 'supplierId' : 'customerId']: isCreatePurchase ? formData.supplierId : formData.customerId,
             status: formData.status,
             orderTAX: formData.orderTAX,
             discount: formData.discount,
@@ -99,7 +103,7 @@ function PurchaseSalesForm() {
             setTableRows([]);
             setFormData({
                 date: '',
-                supplierId: '',
+                [isCreatePurchase ? 'supplierId' : 'customerId']: '',
                 status: 'pending',
                 orderTAX: '',
                 discount: '',
@@ -138,36 +142,41 @@ function PurchaseSalesForm() {
     const handleChangeCustomer = (selectedOption) => {
         setFormData({
             ...formData,
+            customerId: selectedOption.value,
             supplierId: selectedOption.value
         });
         setSelectedSupplierLabel(selectedOption.label);
     }
 
 
-    const handleSelectChange = (selectedOptions) => {
-        const newRows = selectedOptions.map(option => {
-            const product = products.find(product => product.id === option.value);
-            const netUnitPrice = product.price;
-            const qty = 1; // Default quantity
-            return {
-                product: option.label,
-                productId: option.value,
-                netUnitPrice: netUnitPrice,
-                qty: qty,
-                discount: '0', // Dummy data
-                tax: '10', // Dummy data
-                subTotal: netUnitPrice * qty // Calculate subTotal
-            };
-        });
-        setTableRows(newRows);
-    }
+    const handleSelectChange = (selectedOption) => {
+        if (selectedOption) {
+            const product = products.find(product => product.id === selectedOption.value);
+            const productExists = tableRows.some(row => row.productId === selectedOption.value);
+            if (!productExists){
+                const netUnitPrice = product.price;
+                const qty = 1; // Default quantity
+                const newRow = {
+                    product: selectedOption.label,
+                    productId: selectedOption.value,
+                    netUnitPrice: netUnitPrice,
+                    qty: qty,
+                    tax: '10', // Dummy data
+                    subTotal: netUnitPrice * qty // Calculate subTotal
+                };
+                setTableRows(prevRows => [...prevRows, newRow]);
+            }else {
+                toast.error("Product already added");
+            }
+        }
+    };
 
-        const handleQtyChange = (index, value) => {
-            const newRows = [...tableRows];
-            newRows[index].qty = value;
-            newRows[index].subTotal = newRows[index].netUnitPrice * value; // Recalculate subTotal
-            setTableRows(newRows);
-        };
+    const handleQtyChange = (index, value) => {
+        const newRows = [...tableRows];
+        newRows[index].qty = value;
+        newRows[index].subTotal = newRows[index].netUnitPrice * value; // Recalculate subTotal
+        setTableRows(newRows);
+    };
     const handleDeleteRow = (index) => {
         const newRows = [...tableRows];
         newRows.splice(index, 1);
@@ -176,8 +185,9 @@ function PurchaseSalesForm() {
     }
     const calculateTotalAmount = () => {
         let grandTotal = tableRows.reduce((total, row) => total + row.subTotal, 0);
-        return grandTotal - formData.orderTAX + formData.shipping - formData.discount;
+        return Number(grandTotal - formData.orderTAX + formData.shipping - formData.discount).toLocaleString();
     };
+    console.log(isCreatePurchase)
     useEffect(() => {
         fetchProducts();
         fetchCustomers();
@@ -219,7 +229,7 @@ function PurchaseSalesForm() {
                                                         name="supplierId"
                                                         options={
                                                             suppliers.map((supplier) => {
-                                                                return { value: supplier.id, label: supplier.name }
+                                                                return {value: supplier.id, label: supplier.name}
                                                             })
                                                         }
                                                         className="basic-multi-select"
@@ -238,7 +248,6 @@ function PurchaseSalesForm() {
                                                             }),
                                                         }}
                                                         onChange={handleChangeCustomer}
-                                                        value={suppliers.find(supplier => supplier.id === formData.supplierId)}
                                                     />
                                                 </div>
                                                 <div className="col-2">
@@ -252,7 +261,7 @@ function PurchaseSalesForm() {
                                                 <div className="col-10">
                                                     <Select
                                                         isMulti={false}
-                                                        name="tags"
+                                                        name="customerId"
                                                         options={
                                                             customers.map((customer) => {
                                                                 return {value: customer.id, label: customer.name}
@@ -291,7 +300,7 @@ function PurchaseSalesForm() {
                                 <label className="form-label">
                                     Product <FaAsterisk className="text-danger ms-1" size={10}/></label>
                                 <Select
-                                    isMulti
+                                    isMulti={false}
                                     name="products"
                                     options={
                                         products.map((product) => {
@@ -320,14 +329,13 @@ function PurchaseSalesForm() {
 
 
                     <div className="table-responsive mb-4">
-                        <Table  responsive>
+                        <Table responsive>
                             <thead
                                 className="tw-border-gray-100 tw-bg-gray-100 tw-bg-opacity-70 tw-border-2 rounded"
                                 style={{borderRadius: "20"}}>
                             <Th column="Product"/>
                             <Th column="Net Unit Price"/>
                             <Th column="Qty"/>
-                            <Th column="Discount"/>
                             <Th column="Tax"/>
                             <Th column="Sub Total"/>
                             <th className="border-top-0 border-0 border border-primary cursor-pointer">
@@ -357,9 +365,8 @@ function PurchaseSalesForm() {
                                                     onClick={() => handleQtyChange(index, row.qty + 1)}>+</Button>
                                         </div>
                                     </Td>
-                                    <Td>{row.discount}</Td>
                                     <Td>{row.tax}</Td>
-                                    <Td>{row.subTotal}</Td>
+                                    <Td>{Number(row.subTotal).toLocaleString()}</Td>
                                     <Td>
                                         <Button variant="outline-danger"
                                                 onClick={() => handleDeleteRow(index)}>
@@ -457,7 +464,7 @@ function PurchaseSalesForm() {
                     <div className="d-flex justify-content-end ">
                         <div className="d-flex gap-2">
                             <button className="btn text-white d-flex align-items-center gap-2 btn-primary px-4 py-2">
-                                <IoIosSave />   Save
+                                <IoIosSave/> Save
                             </button>
                             <button className="btn btn-secondary px-4">
                                 Cancel

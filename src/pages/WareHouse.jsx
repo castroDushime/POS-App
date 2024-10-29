@@ -22,41 +22,30 @@ function Users() {
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [users, setUsers] = useState([]);
+    const [branches, setBranches] = useState([]);
     const [search, setSearch] = useState('');
     const pageSize = 10;
-    const [branches, setBranches] = useState([]);
     const [roles, setRoles] = useState([]);
     const [formData, setFormData] = useState({
         name: "",
-        email: "",
-        phone: "",
-        address: "",
+        shortName:""
     });
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(null);
 
-    const fetchUsers = () => {
+    const fetchBranches = () => {
         setIsLoading(true);
         http.get("/branches")
             .then((res) => {
                 console.log(res);
                 let data = res.data;
-                setUsers(data);
+                setBranches(data);
             }).catch(() => {
 
         })
             .finally(() => {
                 setIsLoading(false);
             });
-    }
-    const loadBranches = () => {
-        fetchBranches().then((res) => {
-            console.log(res);
-            setBranches(res);
-        }).catch(() => {
-            console.log("Error fetching branches");
-        });
     }
     const fetchRoles = () => {
         setIsLoading(true);
@@ -80,30 +69,29 @@ function Users() {
         setIsEditMode(false);
         setFormData({
             name: "",
-            email: "",
-            phone: "",
-            address: "",
+            shortName:""
         });
     };
     const getPagedData = () => {
-        let filtered = users;
+        let filtered = branches;
         if (search) {
-            filtered = filtered.filter((user) =>
-                (user.name.toLowerCase() || '').includes(search.toLowerCase())
+            filtered = filtered.filter((branch) =>
+                (branch.name.toLowerCase() || '').includes(search.toLowerCase())
             );
         }
         const paginated = paginate(filtered, currentPage, pageSize)
         return {totalCount: filtered.length, data: paginated}
     }
-    const {totalCount, data: paginatedUsers} = getPagedData();
-    const from = paginatedUsers.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
+    const {totalCount, data: paginatedBranches} = getPagedData();
+    const from = paginatedBranches.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
     const to = Math.min((currentPage * pageSize), totalCount);
 
-    const handleEdit = (user) => {
+    const handleEdit = (branch) => {
         setFormData({
-            name: user.name,
+            name: branch.name,
+            shortName:branch.shortName
         });
-        setSelectedUserId(user.id);
+        setSelectedUserId(branch.id);
         setIsEditMode(true);
         setShowModal(true);
     };
@@ -132,7 +120,7 @@ function Users() {
                     .then((res) => {
                         console.log(res);
                         toast.success(res.data.message);
-                        fetchUsers();
+                        fetchBranches();
                     }).catch((error) => {
                     console.log(error);
                     toast.error(error.response.data.message);
@@ -153,15 +141,13 @@ function Users() {
         });
     };
 
-    const saveUser = (e) => {
+    const saveBranch = (e) => {
         e.preventDefault();
         const url = isEditMode ? `/branches/${selectedUserId}` : "/branches";
         const method = isEditMode ? "put" : "post";
         http[method](url, {
             name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
+            shortName:formData.shortName.toUpperCase()
         }).then((res) => {
             console.log(res);
             toast.success(res.data.message);
@@ -169,7 +155,7 @@ function Users() {
             console.log(error);
         }).finally(() => {
             handleCloseModal();
-            fetchUsers();
+            fetchBranches();
         });
     }
 
@@ -180,8 +166,7 @@ function Users() {
     }
 
     useEffect(() => {
-        fetchUsers();
-        loadBranches();
+        fetchBranches();
         fetchRoles();
     }, []);
     useEffect(() => {
@@ -236,6 +221,7 @@ function Users() {
                                     <Th column="Created At"/>
 
                                     <Th column="Name"/>
+                                    <Th column="Short Name"/>
                                     <th className="border-top-0 border-0 border border-primary cursor-pointer">
                                         <div
                                             className="d-flex align-items-center tw-bg-gray-100 tw-text-gray-400 justify-content-center h-100 tw-py-3 mx-0 fw-normal tw-bg-opacity-70 pe-2">
@@ -245,10 +231,11 @@ function Users() {
                                     </thead>
                                     <tbody>
                                     {
-                                        paginatedUsers.map((user, index) => (
+                                        paginatedBranches.map((branch, index) => (
                                             <tr key={index}>
-                                                <td className="tw-text-xs">{format(new Date(user.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
-                                                <td className="tw-text-xs">{user.name}</td>
+                                                <td className="tw-text-xs">{format(new Date(branch.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
+                                                <td className="tw-text-xs">{branch.name}</td>
+                                                <td className="tw-text-xs">{branch.shortName}</td>
                                                 <td className="tw-text-xs">
                                                     <Dropdown>
                                                         <Dropdown.Toggle variant="primary" className="tw-text-white"
@@ -258,9 +245,9 @@ function Users() {
 
                                                         <Dropdown.Menu>
                                                             <Dropdown.Item
-                                                                onClick={() => handleEdit(user)}>Edit</Dropdown.Item>
+                                                                onClick={() => handleEdit(branch)}>Edit</Dropdown.Item>
                                                             <Dropdown.Item
-                                                                onClick={() => handleDelete(user.id)}>Delete</Dropdown.Item>
+                                                                onClick={() => handleDelete(branch.id)}>Delete</Dropdown.Item>
                                                         </Dropdown.Menu>
                                                     </Dropdown>
                                                 </td>
@@ -272,7 +259,7 @@ function Users() {
                                 <div className="align-items-center d-flex justify-content-between">
                                     <div>
                                         <span
-                                            className="tw-text-gray-500">Showing {from} to {to} of {users?.length} entries</span>
+                                            className="tw-text-gray-500">Showing {from} to {to} of {branches?.length} entries</span>
                                     </div>
                                     <AppPagination
                                         total={totalCount}
@@ -290,11 +277,13 @@ function Users() {
                     <Modal.Header closeButton>
                         <Modal.Title>{isEditMode ? "Edit Branch" : "Add New Branch"}</Modal.Title>
                     </Modal.Header>
-                    <Form onSubmit={saveUser}>
+                    <Form onSubmit={saveBranch}>
                         <Modal.Body>
 
                             <FormField label="Name" onChange={handleChange} value={formData.name}
                                        name="name" id="name"/>
+                            <FormField label="Short Name" onChange={handleChange} value={formData.shortName}
+                                       name="shortName" id="shortName"/>
 
                         </Modal.Body>
                         <Modal.Footer>

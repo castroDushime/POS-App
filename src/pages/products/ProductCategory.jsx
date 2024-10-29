@@ -15,6 +15,8 @@ import {paginate} from "../../components/common/paginate.jsx";
 import {format} from 'date-fns';
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
+import Td from "../../components/common/Td.jsx";
+import brandLogo from "../../assets/brand_logo.png"
 
 function ProductCategory() {
     const {setActiveLinkGlobal} = useActiveLink();
@@ -166,7 +168,9 @@ function ProductCategory() {
         http[method](url, {
             name: formData.name,
             image:formData.image
-        }).then((res) => {
+        }, {headers: {
+            'Content-Type': 'multipart/form-data',
+        }}).then((res) => {
             console.log(res);
             toast.success(res.data.message);
         }).catch((error) => {
@@ -240,7 +244,6 @@ function ProductCategory() {
                                     <Th column="Product Image"/>
 
                                     <Th column="Name"/>
-                                    <Th column="Product Count"/>
                                     <th className="border-top-0 border-0 border border-primary cursor-pointer">
                                         <div
                                             className="d-flex align-items-center tw-bg-gray-100 tw-text-gray-400 justify-content-center h-100 tw-py-3 mx-0 fw-normal tw-bg-opacity-70 pe-2">
@@ -255,18 +258,15 @@ function ProductCategory() {
                                                 <td className="tw-text-xs">{format(new Date(category.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
                                                 <td className="tw-text-xs">
 
-                                                    {!category.image ? <img src={category.image}
+                                                    {category.image ? <img src={category.image}
                                                                             className="img-thumbnail rounded-circle"
-                                                                            style={{width: "50px", height: "50px"}}/> :
-                                                        <span>No Image Available</span>}
+                                                                            style={{width: "60px", height: "60px"}}/> :
+                                                        <img src={brandLogo}
+                                                             className=" rounded-circle"
+                                                             style={{width: "60px", height: "60px"}}/>}
                                                 </td>
                                                 <td className="tw-text-xs">{category.name}</td>
-                                                <td className="">
-                                                    <span
-                                                        className={`badge bg-primary rounded-circle `}>{2}</span>
-
-                                                </td>
-                                                <td className="tw-text-xs">
+                                                <Td>
                                                     <Dropdown>
                                                         <Dropdown.Toggle variant="primary" className="tw-text-white"
                                                                          id="dropdown-basic">
@@ -280,7 +280,7 @@ function ProductCategory() {
                                                                 onClick={() => handleDelete(category.id)}>Delete</Dropdown.Item>
                                                         </Dropdown.Menu>
                                                     </Dropdown>
-                                                </td>
+                                                </Td>
                                             </tr>
                                         ))
                                     }
@@ -308,7 +308,7 @@ function ProductCategory() {
                         <Modal.Title>{isEditMode ? "Edit Product" : "Add New Product"}</Modal.Title>
                     </Modal.Header>
                     <Form onSubmit={saveProduct}>
-                        <Modal.Body>
+                        <Modal.Body className="px-4">
 
                             <div className="row">
                                 <div className="col-lg-12">
@@ -325,7 +325,7 @@ function ProductCategory() {
                                             onChange={handleChange}
                                             name="image"
                                             id="image"
-                                            className="form-control"
+                                            className="form-control tw-py-3"
                                         />
                                         {imagePreview && (
                                             <div className="mt-3 d-flex justify-content-center">

@@ -164,11 +164,6 @@ function Brands() {
         const method = isEditMode ? "put" : "post";
         http[method](url, {
             name: formData.name,
-            code: formData.email,
-            units: formData.phone,
-            status: "pending",
-            note: formData.address,
-            supplierId: formData.supplier
         }).then((res) => {
             console.log(res);
             toast.success(res.data.message);

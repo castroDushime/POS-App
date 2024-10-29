@@ -1,5 +1,5 @@
 import {Container, Table,Modal, Button, Form, Dropdown} from "react-bootstrap";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import Th from "../../components/common/Th.jsx";
 import {BsPlus} from "react-icons/bs";
 import {LuEye} from "react-icons/lu";
@@ -20,29 +20,18 @@ import AppCard from "../../components/common/AppCard.jsx";
 function Sales() {
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
-    const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [users, setUsers] = useState([]);
+    const [purchases, setPurchases] = useState([]);
     const [search, setSearch] = useState('');
     const pageSize = 10;
-    const [branches, setBranches] = useState([]);
-    const [roles, setRoles] = useState([]);
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        phone: "",
-        address: "",
-    });
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [selectedUserId, setSelectedUserId] = useState(null);
 
-    const fetchUsers = () => {
+    const fetchSales = () => {
         setIsLoading(true);
-        http.get("/customers")
+        http.get("/sales")
             .then((res) => {
                 console.log(res);
                 let data = res.data;
-                setUsers(data);
+                setPurchases(data);
             }).catch(() => {
 
         })
@@ -51,60 +40,29 @@ function Sales() {
             });
     }
 
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    }
-
     const handleShowModal = () => {
         window.location.href='/admin/create-sale';
     };
-    const handleCloseModal = () => {
-        setShowModal(false);
-        setIsEditMode(false);
-        setFormData({
-            name: "",
-            email: "",
-            phone: "",
-            address: "",
-        });
-    };
     const getPagedData = () => {
-        let filtered = users;
+        let filtered = purchases;
         if (search) {
-            filtered = filtered.filter((user) =>
-                (user.name.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.email.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.phone.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.address.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.branch.name.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.user.name.toLowerCase() || '').includes(search.toLowerCase())
+            filtered = filtered.filter((sale) =>
+                (sale.reference.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (sale.status.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (sale.createdAt.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (sale.totalAmount.toLocaleString() || '').includes(search.toLowerCase()) ||
+                (sale.customer.name.toLowerCase() || '').includes(search.toLowerCase())
             );
         }
         const paginated = paginate(filtered, currentPage, pageSize)
         return {totalCount: filtered.length, data: paginated}
     }
-    const {totalCount, data: paginatedUsers} = getPagedData();
-    const from = paginatedUsers.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
+    const {totalCount, data: paginatedSales} = getPagedData();
+    const from = paginatedSales.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
     const to = Math.min((currentPage * pageSize), totalCount);
 
-    const handleEdit = (user) => {
-        setFormData({
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            address: user.address,
-            password: ""
-        });
-        setSelectedUserId(user.id);
-        setIsEditMode(true);
-        setShowModal(true);
-    };
 
-
-    const handleDelete = (userId) => {
+    const handleDelete = (purchaseId) => {
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
                 confirmButton: "btn btn-primary text-white me-2",
@@ -123,11 +81,11 @@ function Sales() {
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                http.delete(`/customers/${userId}`)
+                http.delete(`/purchases/${purchaseId}`)
                     .then((res) => {
                         console.log(res);
                         toast.success(res.data.message);
-                        fetchUsers();
+                        fetchSales();
                     }).catch((error) => {
                     console.log(error);
                     toast.error(error.response.data.message);
@@ -148,25 +106,7 @@ function Sales() {
         });
     };
 
-    const saveUser = (e) => {
-        e.preventDefault();
-        const url = isEditMode ? `/customers/${selectedUserId}` : "/customers";
-        const method = isEditMode ? "put" : "post";
-        http[method](url, {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
-        }).then((res) => {
-            console.log(res);
-            toast.success(res.data.message);
-        }).catch((error) => {
-            console.log(error);
-        }).finally(() => {
-            handleCloseModal();
-            fetchUsers();
-        });
-    }
+
 
     function handleSearch(event) {
         setSearch(event.target.value);
@@ -175,7 +115,7 @@ function Sales() {
     }
 
     useEffect(() => {
-        fetchUsers();
+        fetchSales();
     }, []);
     useEffect(() => {
 
@@ -207,130 +147,84 @@ function Sales() {
                 <div className="row">
                     <div className="col-12">
                         <AppCard>
-                            <div className="">
-                                <h5 className="card-title my-3">Sales</h5>
-                                <div className="d-flex mb-3 justify-content-between align-items-center">
-                                    <div className="col-lg-4 mb-2">
-                                        <FormField type="text" isRequired={false}
-                                                   value={search}
-                                                   onChange={handleSearch}
-                                                   placeholder="Search ..."/>
-                                    </div>
-                                    <button className="btn tw-py-3 px-4 text-white btn-primary"
-                                            onClick={handleShowModal}>
-                                        Create Sale
-                                    </button>
+                            <h5 className="card-title my-3">Sales</h5>
+                            <div className="d-flex mb-3 justify-content-between align-items-center">
+                                <div className="col-lg-4 mb-2">
+                                    <FormField type="text" isRequired={false}
+                                               value={search}
+                                               onChange={handleSearch}
+                                               placeholder="Search ..."/>
                                 </div>
-                                <Table hover responsive>
-                                    <thead
-                                        className="tw-border-gray-100 tw-bg-gray-100 tw-bg-opacity-70 tw-border-2 rounded"
-                                        style={{borderRadius: "20"}}>
-                                    <Th column="Created At"/>
+                                <button className="btn tw-py-3 px-4 text-white btn-primary"
+                                        onClick={handleShowModal}>
+                                    Create Sale
+                                </button>
+                            </div>
+                            <Table hover responsive>
+                                <thead
+                                    className="tw-border-gray-100 tw-bg-gray-100 tw-bg-opacity-70 tw-border-2 rounded"
+                                    style={{borderRadius: "20"}}>
+                                <Th column="Created At"/>
 
-                                    <Th column="Reference"/>
-                                    <Th column="Customer"/>
-                                    <Th column="Branch"/>
-                                    <Th column="Status"/>
-                                    <Th column="Grand Total"/>
-                                    <Th column="Paid"/>
-                                    <th className="border-top-0 border-0 border border-primary cursor-pointer">
-                                        <div
-                                            className="d-flex align-items-center tw-bg-gray-100 tw-text-gray-400 justify-content-center h-100 tw-py-3 mx-0 fw-normal tw-bg-opacity-70 pe-2">
-                                            <span>Action</span>
-                                        </div>
-                                    </th>
-                                    </thead>
-                                    <tbody>
-                                    {
-                                        paginatedUsers.map((user, index) => (
-                                            <tr key={index}>
-                                                <td className="tw-text-xs">{format(new Date(user.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
-                                                <td className="tw-text-xs">{user.name}</td>
-                                                <td className="tw-text-xs">{user.email}</td>
-                                                <td className="tw-text-xs">{user.phone}</td>
-                                                <td className="tw-text-xs">{user.address}</td>
-                                                <td className="tw-text-xs">{user.branch.name}</td>
-                                                <td className="tw-text-xs">{user.user.name}</td>
-                                                <td className="tw-text-xs">
-                                                    <Dropdown>
-                                                        <Dropdown.Toggle variant="primary" className="tw-text-white"
-                                                                         id="dropdown-basic">
-                                                            options
-                                                        </Dropdown.Toggle>
+                                <Th column="Reference"/>
+                                <Th column="Supplier"/>
+                                <Th column="Total Amount"/>
+                                <Th column="Status"/>
+                                <th className="border-top-0 border-0 border border-primary cursor-pointer">
+                                    <div
+                                        className="d-flex align-items-center tw-bg-gray-100 tw-text-gray-400 justify-content-center h-100 tw-py-3 mx-0 fw-normal tw-bg-opacity-70 pe-2">
+                                        <span>Action</span>
+                                    </div>
+                                </th>
+                                </thead>
+                                <tbody>
+                                {
+                                    paginatedSales.map((sale, index) => (
+                                        <tr key={index}>
+                                            <td className="tw-text-xs">{format(new Date(sale.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
+                                            <td className="tw-text-xs">{sale.reference}</td>
+                                            <td className="tw-text-xs">{sale?.customer?.name}</td>
+                                            <td className="tw-text-xs">Rwf {Number(sale.totalAmount).toLocaleString()}</td>
+                                            <td className="tw-text-xs">
+                                                <span
+                                                    className={`badge ${sale.status === 'pending' ? 'bg-warning' : 'bg-success'} rounded-pill`}>{sale.status}</span>
+                                            </td>
+                                            <td className="tw-text-xs">
+                                                <Dropdown>
+                                                    <Dropdown.Toggle variant="primary" className="tw-text-white"
+                                                                     id="dropdown-basic">
+                                                        options
+                                                    </Dropdown.Toggle>
 
-                                                        <Dropdown.Menu>
-                                                            <Dropdown.Item
-                                                                onClick={() => handleEdit(user)}>Edit</Dropdown.Item>
-                                                            <Dropdown.Item
-                                                                onClick={() => handleDelete(user.id)}>Delete</Dropdown.Item>
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    }
-                                    </tbody>
-                                </Table>
-                                <div className="align-items-center d-flex justify-content-between">
-                                    <div>
+                                                    <Dropdown.Menu>
+                                                        <Dropdown.Item>
+                                                            <Link to={`/admin/create-purchase/${sale.id}`} className="text-decoration-none">Edit</Link>
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item
+                                                            onClick={() => handleDelete(sale.id)}>Delete</Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
+                                            </td>
+                                        </tr>
+                                    ))
+                                }
+                                </tbody>
+                            </Table>
+                            <div className="align-items-center d-flex justify-content-between">
+                                <div>
                                         <span
-                                            className="tw-text-gray-500">Showing {from} to {to} of {users?.length} entries</span>
-                                    </div>
-                                    <AppPagination
-                                        total={totalCount}
-                                        pageSize={pageSize}
-                                        currentPage={currentPage}
-                                        onPageChange={handlePageChange}
-                                    />
+                                            className="tw-text-gray-500">Showing {from} to {to} of {purchases?.length} entries</span>
                                 </div>
+                                <AppPagination
+                                    total={totalCount}
+                                    pageSize={pageSize}
+                                    currentPage={currentPage}
+                                    onPageChange={handlePageChange}
+                                />
                             </div>
                         </AppCard>
                     </div>
                 </div>
-
-                <Modal show={showModal} size="lg" onHide={handleCloseModal}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>{isEditMode ? "Edit Customer" : "Add New Customer"}</Modal.Title>
-                    </Modal.Header>
-                    <Form onSubmit={saveUser}>
-                        <Modal.Body>
-
-                            <div className="row">
-                                <div className="col-lg-6">
-                                    <div className="mb-3">
-                                        <FormField label="Name" onChange={handleChange} value={formData.name}
-                                                   name="name" id="name"/>
-                                    </div>
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="mb-3">
-                                        <FormField label="Email" onChange={handleChange} value={formData.email}
-                                                   name="email" id="email"/>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mb-3">
-                                <FormField label="Phone" name="phone" onChange={handleChange}
-                                           value={formData.phone}
-                                           id="phone"/>
-                            </div>
-                            <div className="mb-3">
-                                <FormField label="Address" name="address" type="textarea" onChange={handleChange}
-                                           value={formData.address}
-                                           id="address"/>
-                            </div>
-
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <Button variant="secondary" onClick={handleCloseModal}>
-                                Close
-                            </Button>
-                            <Button variant="primary" type="submit" className="text-white">
-                                Save
-                            </Button>
-                        </Modal.Footer>
-                    </Form>
-                </Modal>
             </Container>
         }</div>
 
