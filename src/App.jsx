@@ -37,6 +37,7 @@ function App() {
                 <Route path="products" element={<Products/>}/>
                 <Route path="product-category" element={<ProductCategory/>}/>
                 <Route path="sales" element={<Sales/>}/>
+                <Route path="pos/history" element={<Sales/>}/>
                 <Route path="create-sale" element={<CreateSale/>}/>
                 <Route path="create-sale/:id" element={<CreateSale/>}/>
                 <Route path="purchase" element={<Purchase/>}/>
@@ -47,6 +48,7 @@ function App() {
                 <Route path="settings" element={<Settings/>}/>
             </Route>
             <Route path="/admin/pos" element={<POS/>}/>
+            <Route path="/admin/pos/:id" element={<POS/>}/>
 
         </Routes>
     )

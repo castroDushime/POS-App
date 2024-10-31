@@ -89,16 +89,16 @@ function PurchaseSalesForm() {
             date: formData.date,
             [isCreatePurchase ? 'supplierId' : 'customerId']: isCreatePurchase ? formData.supplierId : formData.customerId,
             status: formData.status,
-            orderTAX: formData.orderTAX,
-            discount: formData.discount,
-            shipping: formData.shipping,
+            orderTAX: Number(formData.orderTAX),
+            discount: Number(formData.discount),
+            shipping: Number(formData.shipping),
             note: formData.note,
-            items: submitData
+            items: submitData,
+            isPos: false
         }).then(({data}) => {
-            console.log(data);
             toast.success(data.message)
         }).catch((error) => {
-            toast.error(error.message);
+            console.log(error);
         }).finally(() => {
             setTableRows([]);
             setFormData({
@@ -143,9 +143,14 @@ function PurchaseSalesForm() {
         setFormData({
             ...formData,
             customerId: selectedOption.value,
-            supplierId: selectedOption.value
         });
         setSelectedSupplierLabel(selectedOption.label);
+    }
+    const handleChangeSupplier = (selectedOption) => {
+        setFormData({
+            ...formData,
+            supplierId: selectedOption.value
+        });
     }
 
 
@@ -187,7 +192,6 @@ function PurchaseSalesForm() {
         let grandTotal = tableRows.reduce((total, row) => total + row.subTotal, 0);
         return Number(grandTotal - formData.orderTAX + formData.shipping - formData.discount).toLocaleString();
     };
-    console.log(isCreatePurchase)
     useEffect(() => {
         fetchProducts();
         fetchCustomers();
@@ -247,7 +251,7 @@ function PurchaseSalesForm() {
                                                                 width: '100%',
                                                             }),
                                                         }}
-                                                        onChange={handleChangeCustomer}
+                                                        onChange={handleChangeSupplier}
                                                     />
                                                 </div>
                                                 <div className="col-2">

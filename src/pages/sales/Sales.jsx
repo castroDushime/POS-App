@@ -1,5 +1,5 @@
-import {Container, Table,Modal, Button, Form, Dropdown} from "react-bootstrap";
-import {Link, useNavigate} from "react-router-dom";
+import {Container, Table, Modal, Button, Form, Dropdown} from "react-bootstrap";
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import Th from "../../components/common/Th.jsx";
 import {BsPlus} from "react-icons/bs";
 import {LuEye} from "react-icons/lu";
@@ -18,6 +18,8 @@ import Swal from 'sweetalert2';
 import AppCard from "../../components/common/AppCard.jsx";
 
 function Sales() {
+    const location = useLocation();
+    const isPosUrl = location.pathname.includes('pos/history')
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
@@ -29,7 +31,6 @@ function Sales() {
         setIsLoading(true);
         http.get("/sales")
             .then((res) => {
-                console.log(res);
                 let data = res.data;
                 setPurchases(data);
             }).catch(() => {
@@ -41,10 +42,12 @@ function Sales() {
     }
 
     const handleShowModal = () => {
-        window.location.href='/admin/create-sale';
+        window.location.href = isPosUrl ? '/admin/pos' : '/admin/create-sale';
     };
     const getPagedData = () => {
-        let filtered = purchases;
+        let salesData = purchases.filter((sale) => sale.isPos === false);
+        let posData = purchases.filter((sale) => sale.isPos === true);
+        let filtered = isPosUrl ? posData : salesData;
         if (search) {
             filtered = filtered.filter((sale) =>
                 (sale.reference.toLowerCase() || '').includes(search.toLowerCase()) ||
@@ -107,7 +110,6 @@ function Sales() {
     };
 
 
-
     function handleSearch(event) {
         setSearch(event.target.value);
         console.log("Search state: ", event.target.value); // Add this line
@@ -139,7 +141,7 @@ function Sales() {
                         <li className="breadcrumb-item"><Link to="/">Home</Link></li>
                         <li className="breadcrumb-item"><Link to="/admin/dashboard">Dashboard</Link></li>
                         <li className="breadcrumb-item active" aria-current="page">
-                            Sales
+                            {isPosUrl ? '  POS - History' : 'Sales'}
                         </li>
                     </ol>
                 </nav>
@@ -147,7 +149,9 @@ function Sales() {
                 <div className="row">
                     <div className="col-12">
                         <AppCard>
-                            <h5 className="card-title my-3">Sales</h5>
+                            <h5 className="card-title my-3">
+                                {isPosUrl ? '  POS - History' : 'Sales'}
+                            </h5>
                             <div className="d-flex mb-3 justify-content-between align-items-center">
                                 <div className="col-lg-4 mb-2">
                                     <FormField type="text" isRequired={false}
@@ -157,7 +161,7 @@ function Sales() {
                                 </div>
                                 <button className="btn tw-py-3 px-4 text-white btn-primary"
                                         onClick={handleShowModal}>
-                                    Create Sale
+                                    Create
                                 </button>
                             </div>
                             <Table hover responsive>
@@ -167,7 +171,7 @@ function Sales() {
                                 <Th column="Created At"/>
 
                                 <Th column="Reference"/>
-                                <Th column="Supplier"/>
+                                <Th column="Customer"/>
                                 <Th column="Total Amount"/>
                                 <Th column="Status"/>
                                 <th className="border-top-0 border-0 border border-primary cursor-pointer">
@@ -198,7 +202,12 @@ function Sales() {
 
                                                     <Dropdown.Menu>
                                                         <Dropdown.Item>
-                                                            <Link to={`/admin/create-purchase/${sale.id}`} className="text-decoration-none">Edit</Link>
+                                                            {
+                                                                isPosUrl ? <Link to={`/admin/pos/${sale.id}`}
+                                                                                 className="text-decoration-none">Edit</Link> :
+                                                                    <Link to={`/admin/create-purchase/${sale.id}`}
+                                                                          className="text-decoration-none">Edit</Link>
+                                                            }
                                                         </Dropdown.Item>
                                                         <Dropdown.Item
                                                             onClick={() => handleDelete(sale.id)}>Delete</Dropdown.Item>

@@ -7,6 +7,7 @@ import {useProfile} from "../providers/AuthProvider.jsx";
 
 const Profile = () => {
     const user = useProfile();
+    console.log(user)
 
 
 
@@ -43,18 +44,18 @@ const Profile = () => {
                                 className="d-flex align-items-center tw-text-2xl fw-semibold justify-content-center rounded-circle bg-primary-subtle text-primary border border-primary-subtle tw-h-40 tw-w-40">
                                 {/*{initials}*/}
                                 {
-                                    user?.user?.name.split(" ").map((n) => n[0]).join("")
+                                    user?.user?.user?.name?.split(" ").map((n) => n[0]).join("")
                                 }
                             </div>
                             <div className="text-center mt-3">
                                 <h2>
                                     {
-                                        user?.user?.name
+                                        user?.user?.user?.name
                                     }
                                 </h2>
                                 <p className="text-muted">
                                     {
-                                        user?.user?.role?.name
+                                        user?.user?.user?.role?.name
                                     }
                                 </p>
                             </div>
@@ -63,22 +64,22 @@ const Profile = () => {
                         <div className="row">
                                 <div className="mb-3 col-lg-6">
                                     <label className="form-label">First Name</label>
-                                    <input type="text" className="form-control" value={user?.user?.name?.split(" ")[0]}
+                                    <input type="text" className="form-control" value={user?.user?.user?.name?.split(" ")[0]}
                                            disabled/>
                                 </div>
                                 <div className="mb-3 col-lg-6">
                                     <label className="form-label">Last Name</label>
-                                    <input type="text" className="form-control" value={user?.user?.name?.split(" ")[+1]} disabled/>
+                                    <input type="text" className="form-control" value={user?.user?.user?.name?.split(" ")[+1]} disabled/>
                                 </div>
                             </div>
                         <div>
                             <div className="mb-3">
                                 <label className="form-label">Email</label>
-                                <input type="text" className="form-control" value={user?.user?.email} disabled/>
+                                <input type="text" className="form-control" value={user?.user?.user?.email} disabled/>
                             </div>
                             <div className="mb-3">
                                 <label className="form-label">Branch</label>
-                                <input type="text" className="form-control" value={user?.user?.branch?.name} disabled/>
+                                <input type="text" className="form-control" value={user?.user?.user?.branch?.name} disabled/>
                             </div>
                         </div>
 
