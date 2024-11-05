@@ -19,7 +19,7 @@ function PurchaseSalesForm() {
     const {user} = useProfile();
     const {id} = useParams();
     const location = useLocation();
-    const isCreatePurchase = location.pathname.includes('/admin/create-purchase');
+    const isCreatePurchase = location.pathname.includes('/create-purchase');
     const [products, setProducts] = useState([]);
     const [customers, setCustomers] = useState([]);
     const [suppliers, setSuppliers] = useState([]);

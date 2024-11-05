@@ -3,7 +3,7 @@ import {FaHand, FaMagnifyingGlass} from "react-icons/fa6";
 import Select from "react-select";
 import {useEffect, useState} from "react";
 import http from "../services/httpService.js";
-import {BiHistory, BiReset} from "react-icons/bi";
+import {BiHistory, BiReset, BiTrash} from "react-icons/bi";
 import FormField from "../components/common/FormField.jsx";
 import {GrDashboard} from "react-icons/gr";
 import {Link, useParams} from "react-router-dom";
@@ -11,7 +11,6 @@ import BLogo from '../assets/brand_logo.png'
 import {toast} from "react-toastify";
 import {FaMoneyBill} from "react-icons/fa";
 import Td from "../components/common/Td.jsx";
-import {CiCirclePlus} from "react-icons/ci";
 import {FiPlusCircle} from "react-icons/fi";
 import SaveCustomerModel from "../components/SaveCustomerModel.jsx";
 
@@ -26,7 +25,9 @@ function Pos() {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedBrand, setSelectedBrand] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [customers, setCustomers] = useState([]);
+    const [productsFetched, setProductsFetched] = useState(false);
     const [formData, setFormData] = useState({
         date: '',
         supplierId: '',
@@ -49,6 +50,7 @@ function Pos() {
             .then((res) => {
                 let data = res.data;
                 setProducts(data);
+                setProductsFetched(true);
             }).catch(() => {
         }).finally(() => {
         });
@@ -63,6 +65,7 @@ function Pos() {
     }
 
     const handleShowModal = () => setShowModal(true);
+    const handleShowPaymentModal = () => setShowPaymentModal(true);
     const handleCloseModal = () => {
         setShowModal(false);
         setCuFormData({
@@ -93,13 +96,12 @@ function Pos() {
         }).finally(() => {
         });
     }
-    const url = id && `/sales/show/${id}`;
     const fetchPurchase = () => {
-        http.get(url)
+        http.get(`/sales/show/${id}`)
             .then((res) => {
                 const data = res.data;
+                setSelectedProductIds(data.items.map(item => item.productId));
                 if(id){
-
                     setFormData({
                         date: data.date,
                         customerId: data.customerId,
@@ -110,7 +112,7 @@ function Pos() {
                         note: data.note,
                         items: data.items
                     });
-                    setTableRows(data.items.map(item => ({
+                    setTableRows(data?.items?.map(item => ({
                         product: products.filter(product => product.id === item.productId)[0].name,
                         productId: item.productId,
                         netUnitPrice: item.price,
@@ -173,7 +175,10 @@ function Pos() {
         });
     }
     const handleAddRow = (product) => {
-        if (tableRows.length < 5) {
+
+        if (selectedProductIds.includes(product.id)) {
+            toast.error('Product already added');
+        }else {
             const netUnitPrice = product.price;
             const qty = 1;
             const newRow = {
@@ -184,10 +189,16 @@ function Pos() {
             };
             setTableRows([...tableRows, newRow]);
             setSelectedProductIds([...selectedProductIds, product.id]);
-        } else {
-            toast.error('You can not add more than 5 products')
         }
     };
+    const handleRemoveRow = (index) => {
+        const newRows = [...tableRows];
+        newRows.splice(index, 1);
+        setTableRows(newRows);
+        const selectedProduct = tableRows[index];
+        const newSelectedProductIds = selectedProductIds.filter(id => id !== selectedProduct.productId);
+        setSelectedProductIds(newSelectedProductIds);
+    }
     const handleQtyChange = (index, value) => {
         const newRows = [...tableRows];
         newRows[index].qty = value;
@@ -224,10 +235,12 @@ function Pos() {
         fetchBrands();
         fetchCustomers();
         fetchCategories();
-        if (id) {
+    }, []);
+    useEffect(() => {
+        if (productsFetched && id) {
             fetchPurchase();
         }
-    }, []);
+    }, [productsFetched, id]);
     return (
         <div className="tw-bg-blue-200 min-vh-100 tw-bg-opacity-20 card card-body border-0">
             <form onSubmit={handleSubmit}>
@@ -302,7 +315,12 @@ function Pos() {
                                                         onClick={() => handleQtyChange(index, row.qty + 1)}>+</Button>
                                             </Td>
                                             <Td className="tw-text-xs">{Number(row.netUnitPrice).toLocaleString()}</Td>
-                                            <Td className="tw-text-xs">{Number(row.subTotal).toLocaleString()}</Td>
+                                            <Td className="tw-text-xs">{Number(row.subTotal).toLocaleString()}
+                                                <Button onClick={() => handleRemoveRow(index)}
+                                                        className="btn btn-danger btn-sm rounded-circle ms-2">
+                                                    <BiTrash/>
+                                                </Button>
+                                            </Td>
                                         </tr>
                                     ))}
                                     </tbody>
@@ -407,7 +425,7 @@ function Pos() {
                                         </button>
                                     </Col>
                                     <Col xl={4} className="mb-2">
-                                        <button type="submit" className="btn w-100 py-2 tw-bg-green-500 text-white tw-text-lg">Pay
+                                        <button type="button" onClick={handleShowPaymentModal} className="btn w-100 py-2 tw-bg-green-500 text-white tw-text-lg">Pay
                                             now <FaMoneyBill/></button>
                                     </Col>
                                 </Row>
@@ -443,11 +461,11 @@ function Pos() {
                                     {/*        className="btn rounded-3  tw-text-2xl text-white btn-primary">*/}
                                     {/*    <AiOutlineFullscreen/>*/}
                                     {/*</button>*/}
-                                    <Link to={'/admin/pos/history'}
+                                    <Link to={'/pos/history'}
                                           className="btn rounded-3  tw-text-2xl btn-primary text-white">
                                         <BiHistory/>
                                     </Link>
-                                    <Link to={'/admin/dashboard'}
+                                    <Link to={'/dashboard'}
                                           className="btn rounded-3  tw-text-2xl btn-primary text-white">
                                         <GrDashboard/>
                                     </Link>
@@ -534,7 +552,23 @@ function Pos() {
                                selectedUserId={null}
                                handleCloseModal={handleCloseModal}
             />
+            <Modal show={showModal} onHide={handleCloseModal}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Modal heading</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>Modal body text goes here.</p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseModal}>
+                        Close
+                    </Button>
+                    <Button variant="primary" onClick={handleCloseModal}>
+                        Save Changes
+                    </Button>
+                </Modal.Footer>
 
+            </Modal>
         </div>
     );
 }

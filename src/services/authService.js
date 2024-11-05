@@ -77,6 +77,7 @@ export function setUser(user) {
 }
 
 export function logout() {
+    localStorage.removeItem('user');
     http.get('/auth/logout').then(({data}) => {
         setUser(data);
     }).catch((error) => {

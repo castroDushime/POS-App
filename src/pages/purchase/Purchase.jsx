@@ -41,7 +41,7 @@ function Purchase() {
     }
 
     const handleShowModal = () => {
-        window.location.href='/admin/create-purchase';
+        window.location.href='/create-purchase';
     };
     const getPagedData = () => {
         let filtered = purchases;
@@ -137,7 +137,7 @@ function Purchase() {
                 <nav aria-label="breadcrumb" className="bg-light mb-3 px-3 py-2 rounded">
                     <ol className="breadcrumb mb-0">
                         <li className="breadcrumb-item"><Link to="/">Home</Link></li>
-                        <li className="breadcrumb-item"><Link to="/admin/dashboard">Dashboard</Link></li>
+                        <li className="breadcrumb-item"><Link to="/dashboard">Dashboard</Link></li>
                         <li className="breadcrumb-item active" aria-current="page">
                             Purchase
                         </li>
@@ -198,7 +198,7 @@ function Purchase() {
 
                                                     <Dropdown.Menu>
                                                         <Dropdown.Item>
-                                                            <Link to={`/admin/create-purchase/${purchase.id}`} className="text-decoration-none">Edit</Link>
+                                                            <Link to={`/create-purchase/${purchase.id}`} className="text-decoration-none">Edit</Link>
                                                         </Dropdown.Item>
                                                         <Dropdown.Item
                                                             onClick={() => handleDelete(purchase.id)}>Delete</Dropdown.Item>

@@ -1,12 +1,10 @@
-import {Container, Table, Pagination, Modal, Button, Form, Dropdown} from "react-bootstrap";
+import {Container, Table, Modal, Button, Form, Dropdown} from "react-bootstrap";
 import {Link} from "react-router-dom";
 import Th from "../components/common/Th.jsx";
 import {BsPlus} from "react-icons/bs";
-import {LuEye} from "react-icons/lu";
 import {useEffect, useState} from "react";
 import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
 import FormField from "../components/common/FormField.jsx";
-import {FaAsterisk} from "react-icons/fa6";
 import http from "../services/httpService.js";
 import ContentLoader from "react-content-loader";
 import _ from "lodash";
@@ -36,7 +34,7 @@ function Users() {
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(null);
 
-    const fetchUsers = () => {
+    const fetchSuppliers = () => {
         setIsLoading(true);
         http.get("/suppliers")
             .then((res) => {
@@ -50,23 +48,7 @@ function Users() {
                 setIsLoading(false);
             });
     }
-    const loadBranches = () => {
-        fetchBranches().then((res) => {
-            console.log(res);
-            setBranches(res);
-        }).catch(() => {
-            console.log("Error fetching branches");
-        });
-    }
-    const fetchRoles = () => {
-        setIsLoading(true);
-        loadRoles().then((res) => {
-            setIsLoading(false);
-            setRoles(res);
-        }).catch(() => {
-            console.log("Error fetching roles");
-        });
-    }
+
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -141,7 +123,7 @@ function Users() {
                     .then((res) => {
                         console.log(res);
                         toast.success(res.data.message);
-                        fetchUsers();
+                        fetchSuppliers();
                     }).catch((error) => {
                     console.log(error);
                     toast.error(error.response.data.message);
@@ -178,7 +160,7 @@ function Users() {
             console.log(error);
         }).finally(() => {
             handleCloseModal();
-            fetchUsers();
+            fetchSuppliers();
         });
     }
 
@@ -189,9 +171,7 @@ function Users() {
     }
 
     useEffect(() => {
-        fetchUsers();
-        loadBranches();
-        fetchRoles();
+        fetchSuppliers();
     }, []);
     useEffect(() => {
 
@@ -213,7 +193,7 @@ function Users() {
                 <nav aria-label="breadcrumb" className="bg-light mb-3 px-3 py-2 rounded">
                     <ol className="breadcrumb mb-0">
                         <li className="breadcrumb-item"><Link to="/">Home</Link></li>
-                        <li className="breadcrumb-item"><Link to="/admin/dashboard">Dashboard</Link></li>
+                        <li className="breadcrumb-item"><Link to="/dashboard">Dashboard</Link></li>
                         <li className="breadcrumb-item active" aria-current="page">
                             Suppliers
                         </li>

@@ -45,7 +45,7 @@ export default function SideBar({isOpen}) {
                     <div className="tw-list-none px-1 d-flex flex-column menu-container">
 
                         <SideBarLink
-                            path='/admin/dashboard'
+                            path='/dashboard'
                             text="Dashboard"
                             isActive={activeLink === 'dashboard'}
                             icon={TiHomeOutline}
@@ -54,7 +54,7 @@ export default function SideBar({isOpen}) {
                         {
                             user?.user?.role?.permissions?.includes('manage-branches') &&
                             <SideBarLink
-                                path='/admin/warehouse'
+                                path='/warehouse'
                                 text="Branches"
                                 isActive={activeLink === 'warehouses'}
                                 icon={GiExitDoor}
@@ -64,7 +64,7 @@ export default function SideBar({isOpen}) {
                         {
                             user?.user?.role?.permissions?.includes('manage-sales') &&
                             <SideBarLink
-                                path='/admin/sales'
+                                path='/sales'
                                 text="Sales"
                                 isActive={activeLink === 'sales'}
                                 icon={FiShoppingCart}
@@ -74,7 +74,7 @@ export default function SideBar({isOpen}) {
                         {
                             user?.user?.role?.permissions?.includes('manage-purchases') &&
                             <SideBarLink
-                                path='/admin/purchase'
+                                path='/purchase'
                                 text="Purchases"
                                 isActive={activeLink === 'purchase'}
                                 icon={IconReceipt}
@@ -87,22 +87,22 @@ export default function SideBar({isOpen}) {
                         <SideBarLinks icon={LuPackageOpen} text="Products">
                             {
                                 user?.user?.role?.permissions?.includes('manage-products') &&
-                                <SubmenuLinks path={'/admin/products'} text={'Product'}
+                                <SubmenuLinks path={'/products'} text={'Product'}
                                               isActive={activeLink === 'products'}/>
                             }
                             {
                                 user?.user?.role?.permissions?.includes('manage-product-categories') &&
-                                <SubmenuLinks path={'/admin/product-category'} text={'Product Categories'}
+                                <SubmenuLinks path={'/product-category'} text={'Product Categories'}
                                               isActive={activeLink === 'categories'}/>
                             }
                             {
                                 user?.user?.role?.permissions?.includes('manage-brands') &&
-                                <SubmenuLinks path={'/admin/brands'} text={'Brands'}
+                                <SubmenuLinks path={'/brands'} text={'Brands'}
                                               isActive={activeLink === 'brands'}/>
                             }
                             {
                                 user?.user?.role?.permissions?.includes('manage-units') &&
-                                <SubmenuLinks path={'/admin/units'} text={'Units'} isActive={activeLink === 'units'}/>
+                                <SubmenuLinks path={'/units'} text={'Units'} isActive={activeLink === 'units'}/>
                             }
                         </SideBarLinks>
                     }
@@ -110,18 +110,18 @@ export default function SideBar({isOpen}) {
                     <SideBarLinks icon={TbUsersGroup  } text="People">
                         {
                             user?.user?.role?.permissions?.includes('manage-users') &&
-                            <SubmenuLinks path={'/admin/users'} text={'Users'} isActive={activeLink === 'user'}/>
+                            <SubmenuLinks path={'/users'} text={'Users'} isActive={activeLink === 'user'}/>
                         }
                         {
                             user?.user?.role?.permissions?.includes('manage-customers') &&
-                            <SubmenuLinks path={'/admin/customers'} text={'Customers'}
+                            <SubmenuLinks path={'/customers'} text={'Customers'}
                                           isActive={activeLink === 'customers'}/>
                         }
                     </SideBarLinks>
                     {
-                        user?.user?.role?.permissions?.includes('manage-roles') &&
+                        user?.user?.role?.permissions?.includes('manage-suppliers') &&
                         <SideBarLink
-                            path='/admin/suppliers'
+                            path='/suppliers'
                             text="Suppliers"
                             isActive={activeLink === 'supp'}
                             icon={TbDatabaseDollar}
@@ -131,7 +131,7 @@ export default function SideBar({isOpen}) {
                     {
                         user?.user?.role?.permissions?.includes('manage-roles') &&
                         <SideBarLink
-                            path='/admin/roles'
+                            path='/roles'
                             text="Roles/Permissions"
                             isActive={activeLink === 'roles'}
                             icon={LuUserPlus2 }
@@ -139,8 +139,18 @@ export default function SideBar({isOpen}) {
                         />
                     }
                     <span className="px-3 mb-2 fw-semibold tw-text-gray-400">Lists</span>
+                    {
+                        user?.user?.role?.name==='Administrator' &&
+                        <SideBarLink
+                            path='/reports'
+                            text="Reports"
+                            isActive={activeLink === 'reports'}
+                            icon={BiBarChartAlt2}
+                            title="Reports"
+                        />
+                    }
                     <SideBarLink
-                        path='/admin/settings'
+                        path='/settings'
                         text="Settings"
                         isActive={activeLink === 'settings'}
                         icon={IoSettingsOutline}

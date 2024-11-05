@@ -23,24 +23,31 @@ http.interceptors.request.use(config => {
     //     config.headers.Authorization = `Bearer ${jwt}`;
     // }
 
-    // try {
-    //     let decodedToken = jwtDecode(jwt);// Debugging line
-    //
-    //     let exp = decodedToken.exp;
-    //     let now = new Date().getTime() / 1000; // Debugging line
-    //
-    //     if (exp < now) {
-    //         localStorage.setItem('attemptedUrl', window.location.href);
-    //         logout();
-    //         toast.error("Please login again.", {
-    //             theme: "colored", position: "bottom-right",
-    //         });
-    //         window.location = "/";
-    //     }
-    // } catch (e) {
-    //     console.error("Error decoding token:", e); // Debugging line
-    //     return config;
-    // }
+    try {
+        const token = Cookies.get('token');
+
+        let exp = token?.exp;
+        let now = new Date().getTime() / 1000; // Debugging line
+
+        if (exp < now) {
+            localStorage.setItem('attemptedUrl', window.location.href);
+            localStorage.removeItem('user');
+            http.post('/auth/logout').then(({ data }) => {
+                if (data) {
+                    window.location = "/";
+                }
+            }).catch((error) => {
+                console.log(error);
+            });
+            toast.error("Please login again.", {
+                theme: "colored", position: "bottom-right",
+            });
+            window.location = "/";
+        }
+    } catch (e) {
+        console.error("Error decoding token:", e); // Debugging line
+        return config;
+    }
 
     return config;
 }, error => {
@@ -55,8 +62,15 @@ http.interceptors.response.use(null, error => {
         });
     } else if (error.response) {
         if (error.response.status === 401) {
-            // window.location = "/";
-            // logout();
+            window.location = "/";
+            localStorage.removeItem('user');
+            http.post('/auth/logout').then(({ data }) => {
+                if (data) {
+                    window.location = "/";
+                }
+            }).catch((error) => {
+                console.log(error);
+            });
             toast.error(error.response.data?.message+"Please login again.", {
                 theme: "colored", position: "top-right",
             });

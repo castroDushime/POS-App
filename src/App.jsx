@@ -3,7 +3,7 @@ import {lazy} from "react";
 const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
 const MasterLayout = lazy(() => import("./Layouts/MasterLayout.jsx"));
 const AuthLayout = lazy(() => import("./Layouts/AuthLayout.jsx"));
-const Login = lazy(() => import("./pages/Login.jsx"));
+const Login = lazy(() => import("./pages/auth/Login.jsx"));
 const Profile = lazy(() => import("./pages/Profile.jsx"));
 const Roles = lazy(() => import("./pages/Roles.jsx"));
 const Suppliers = lazy(() => import("./pages/Suppliers.jsx"));
@@ -20,13 +20,19 @@ const POS=lazy(()=>import('./pages/POS.jsx'));
 const Brands=lazy(()=>import('./pages/products/Brands.jsx'));
 const Units=lazy(()=>import('./pages/products/Units.jsx'));
 const Settings=lazy(()=>import('./pages/Settings.jsx'));
+const Reports=lazy(()=>import('./pages/Reports.jsx'));
+const ForgotPassword=lazy(()=>import('./pages/auth/ForgotPassword.jsx'));
+const ResetPassword=lazy(()=>import('./pages/auth/ResetPassword.jsx'));
 function App() {
     return (
         <Routes>
-            <Route path="" element={<AuthLayout/>}>
-                <Route path="/" element={<Login/>}/>
+            <Route path="/" element={<AuthLayout/>}>
+                <Route path="" element={<Login/>}/>
+                <Route path="forgot-password" element={<ForgotPassword/>}/>
+                <Route path="reset-password/:id" element={<ResetPassword/>}/>
+
             </Route>
-            <Route path="/admin/" element={<MasterLayout/>}>
+            <Route path="/" element={<MasterLayout/>}>
                 <Route path="dashboard" element={<Dashboard/>}/>
                 <Route path="profile" element={<Profile/>}/>
                 <Route path="roles" element={<Roles/>}/>
@@ -46,9 +52,10 @@ function App() {
                 <Route path="brands" element={<Brands/>}/>
                 <Route path="units" element={<Units/>}/>
                 <Route path="settings" element={<Settings/>}/>
+                <Route path="reports" element={<Reports/>}/>
             </Route>
-            <Route path="/admin/pos" element={<POS/>}/>
-            <Route path="/admin/pos/:id" element={<POS/>}/>
+            <Route path="/pos" element={<POS/>}/>
+            <Route path="/pos/:id" element={<POS/>}/>
 
         </Routes>
     )

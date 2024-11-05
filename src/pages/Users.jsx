@@ -112,8 +112,8 @@ function Users() {
             name: user.name,
             email: user.email,
             phone: user.phone,
-            role: user.role.id,
-            branch: user.branch.id,
+            role: user.roleId,
+            branch: user.branchId,
             password: ""
         });
         setSelectedUserId(user.id);
@@ -220,7 +220,7 @@ function Users() {
                 <nav aria-label="breadcrumb" className="bg-light mb-3 px-3 py-2 rounded">
                     <ol className="breadcrumb mb-0">
                         <li className="breadcrumb-item"><Link to="/">Home</Link></li>
-                        <li className="breadcrumb-item"><Link to="/admin/dashboard">Dashboard</Link></li>
+                        <li className="breadcrumb-item"><Link to="/dashboard">Dashboard</Link></li>
                         <li className="breadcrumb-item active" aria-current="page">
                             Users
                         </li>

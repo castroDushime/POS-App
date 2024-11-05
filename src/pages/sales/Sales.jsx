@@ -1,12 +1,9 @@
-import {Container, Table, Modal, Button, Form, Dropdown} from "react-bootstrap";
-import {Link, useLocation, useNavigate} from "react-router-dom";
+import {Container, Table, Dropdown} from "react-bootstrap";
+import {Link, useLocation} from "react-router-dom";
 import Th from "../../components/common/Th.jsx";
-import {BsPlus} from "react-icons/bs";
-import {LuEye} from "react-icons/lu";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useActiveLink} from "../../providers/ActiveLinkProvider.jsx";
 import FormField from "../../components/common/FormField.jsx";
-import {FaAsterisk} from "react-icons/fa6";
 import http from "../../services/httpService.js";
 import ContentLoader from "react-content-loader";
 import _ from "lodash";
@@ -27,6 +24,90 @@ function Sales() {
     const [search, setSearch] = useState('');
     const pageSize = 10;
 
+    const handlePrint = (id) => {
+        http.get(`/sales/show/${id}`).then((res) => {
+            const sale = res.data;
+
+            // HTML content for the print page
+            const printContent = `
+        <html>
+            <head>
+                <title>Sale Receipt</title>
+                <!-- Tailwind CSS CDN link -->
+                <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+                <link rel="stylesheet" href="../../scss/styles.scss">
+                <link href="../../index.csss">
+            </head>
+            <body class="bg-gray-100 p-10">
+                <div class="container mx-auto bg-white p-6 rounded shadow">
+                    <div class="flex  justify-between items-center">
+                    <img src="https://infypos-demo.nyc3.digitaloceanspaces.com/settings/337/logo-80.png" alt="logo" class="w-20 h-20"/>
+                    <div class="mb-6">
+                        <p><strong>Reference:</strong> ${sale.reference}</p>
+                        <p><strong>Date:</strong> ${new Date(sale.date).toLocaleDateString()}</p>
+              
+                    </div>
+                    </div>
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold">Customer Information</h2>
+                        <p><strong>Name:</strong> ${sale.customer.name}</p>
+                        <p><strong>Email:</strong> ${sale.customer.email}</p>
+                        <p><strong>Phone:</strong> ${sale.customer.phone}</p>
+                        <p><strong>Address:</strong> ${sale.customer.address}</p>
+                    </div>
+                    <div class="mt-6">
+                        <table class="border-collapse border mb-4 border-gray-300 w-full">
+                            <thead style="background-color: #46D5FF">
+                            <tr>
+                            <th class="border text-white border-gray-300 px-4 py-2">Product ID</th>
+                            <th class="border text-white border-gray-300 px-4 py-2">Quantity</th>
+                            <th class="border text-white border-gray-300 px-4 py-2">Price</th>
+                            <th class="border text-white border-gray-300 px-4 py-2">Amount</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                ${sale.items.map(item => `
+                                    <tr>
+                                        <td class="border border-gray-300 px-4 py-2">${item.product}</td>
+                                        <td class="border border-gray-300 px-4 py-2">${item.quantity}</td>
+                                        <td class="border border-gray-300 px-4 py-2">Rwf ${Number(item.price).toLocaleString()}</td>
+                                        <td class="border border-gray-300 px-4 py-2">Rwf ${Number(item.amount).toLocaleString()}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        <div class="flex justify-end flex-col items-end">
+                        <p><strong>Order Tax:</strong> Rwf ${sale.orderTAX}</p>
+                        <p><strong>Discount:</strong> Rwf ${sale.discount}</p>
+                        <p><strong>Shipping:</strong> Rwf ${sale.shipping}</p>
+                        <p><strong>Total Amount:</strong> Rwf ${Number(sale.items.reduce((acc, item) => acc + item.amount, 0)).toLocaleString()}</p>
+</div>
+                    </div>
+                </div>
+            </body>
+        </html>
+        `;
+
+            const printWindow = window.open("", "_blank");
+
+            if (printWindow) {
+                // Write the HTML content to the new tab
+                printWindow.document.open();
+                printWindow.document.write(printContent);
+                printWindow.document.close();
+
+                // Trigger print dialog once the content is loaded
+                printWindow.onload = () => {
+                    printWindow.print();
+                    printWindow.onafterprint = () => {
+                        printWindow.close();
+                    };
+                };
+            }
+        }).catch((error) => {
+            console.log(error);
+        });
+    };
     const fetchSales = () => {
         setIsLoading(true);
         http.get("/sales")
@@ -42,7 +123,7 @@ function Sales() {
     }
 
     const handleShowModal = () => {
-        window.location.href = isPosUrl ? '/admin/pos' : '/admin/create-sale';
+        window.location.href = isPosUrl ? '/pos' : '/create-sale';
     };
     const getPagedData = () => {
         let salesData = purchases.filter((sale) => sale.isPos === false);
@@ -139,7 +220,7 @@ function Sales() {
                 <nav aria-label="breadcrumb" className="bg-light mb-3 px-3 py-2 rounded">
                     <ol className="breadcrumb mb-0">
                         <li className="breadcrumb-item"><Link to="/">Home</Link></li>
-                        <li className="breadcrumb-item"><Link to="/admin/dashboard">Dashboard</Link></li>
+                        <li className="breadcrumb-item"><Link to="/dashboard">Dashboard</Link></li>
                         <li className="breadcrumb-item active" aria-current="page">
                             {isPosUrl ? '  POS - History' : 'Sales'}
                         </li>
@@ -203,14 +284,16 @@ function Sales() {
                                                     <Dropdown.Menu>
                                                         <Dropdown.Item>
                                                             {
-                                                                isPosUrl ? <Link to={`/admin/pos/${sale.id}`}
+                                                                isPosUrl ? <Link to={`/pos/${sale.id}`}
                                                                                  className="text-decoration-none">Edit</Link> :
-                                                                    <Link to={`/admin/create-purchase/${sale.id}`}
+                                                                    <Link to={`/create-purchase/${sale.id}`}
                                                                           className="text-decoration-none">Edit</Link>
                                                             }
                                                         </Dropdown.Item>
                                                         <Dropdown.Item
                                                             onClick={() => handleDelete(sale.id)}>Delete</Dropdown.Item>
+                                                        <Dropdown.Item onClick={() => handlePrint(sale.id)}>Print
+                                                            Receipt</Dropdown.Item>
                                                     </Dropdown.Menu>
                                                 </Dropdown>
                                             </td>
@@ -219,6 +302,12 @@ function Sales() {
                                 }
                                 </tbody>
                             </Table>
+                            {
+                                !paginatedSales.length &&
+                                <div className="text-center">
+                                    <h3 className="text-muted">No data found</h3>
+                                </div>
+                            }
                             <div className="align-items-center d-flex justify-content-between">
                                 <div>
                                         <span
@@ -232,6 +321,7 @@ function Sales() {
                                 />
                             </div>
                         </AppCard>
+
                     </div>
                 </div>
             </Container>
