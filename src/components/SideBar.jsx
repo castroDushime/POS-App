@@ -6,8 +6,6 @@ import {TiHomeOutline} from "react-icons/ti";
 import {IoSettingsOutline} from "react-icons/io5";
 import {BiBarChartAlt2} from "react-icons/bi";
 import {TbDatabaseDollar, TbUsersGroup} from "react-icons/tb";
-import {FaCartShopping, FaSackDollar, FaScaleBalanced} from "react-icons/fa6";
-import {VscFileSubmodule} from "react-icons/vsc";
 import {HiOutlineMegaphone} from "react-icons/hi2";
 import {Link} from "react-router-dom";
 import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
@@ -17,7 +15,6 @@ import {LuPackageOpen, LuUserPlus2} from "react-icons/lu";
 import {IconReceipt} from "@tabler/icons-react";
 import {useProfile} from "../providers/AuthProvider.jsx";
 import {FiShoppingCart} from "react-icons/fi";
-import {PiUsersThreeBold} from "react-icons/pi";
 
 export default function SideBar({isOpen}) {
     const {activeLink} = useActiveLink();

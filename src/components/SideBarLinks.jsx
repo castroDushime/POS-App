@@ -23,7 +23,7 @@ export default function SideBarLinks({icon, text, children}) {
                                       className={`tw-ml-auto tw-transition text-muted fw-normal tw-ease-in-out ${open ? 'tw-rotate-90' : ''}`}/>
                 </div>
                 {open && <div className="p-2 mx-2   tw-transition-all tw-delay-200 tw-ease-in-out">
-                    {children}
+                    {Array.isArray(children) ? <>{children}</> : children}
                 </div>}
             </div>
         </div>
