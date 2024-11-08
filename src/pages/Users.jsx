@@ -27,6 +27,7 @@ function Users() {
     const pageSize = 10;
     const [branches, setBranches] = useState([]);
     const [roles, setRoles] = useState([]);
+    const [validations, setValidations] = useState("");
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -171,21 +172,27 @@ function Users() {
         e.preventDefault();
         const url = isEditMode ? `/users/${selectedUserId}` : "/users";
         const method = isEditMode ? "put" : "post";
-        http[method](url, {
+        const payload = {
             name: formData.name,
             email: formData.email,
             phone: formData.phone,
             roleId: formData.role,
             branchId: formData.branch,
-            password: formData.password
-        }).then((res) => {
+        };
+        if (formData.password) {
+            payload.password = formData.password;
+        }
+        http[method](url, payload).then((res) => {
             console.log(res);
             toast.success(res.data.message);
         }).catch((error) => {
             console.log(error);
+            setValidations(error?.response?.data?.errors);
         }).finally(() => {
-            handleCloseModal();
-            fetchUsers();
+            if (!validations){
+                handleCloseModal();
+                fetchUsers();
+            }
         });
     }
 
@@ -309,6 +316,19 @@ function Users() {
                         <Modal.Header closeButton>
                             <Modal.Title>{isEditMode ? "Edit User" : "Add New User"}</Modal.Title>
                         </Modal.Header>
+                        {
+                            validations &&
+                            <div className="alert alert-danger">{
+                                validations && <ul>
+                                    {
+                                        validations.map((error, index) => (
+                                            <li className="text-danger" key={index}>{error?.msg}</li>
+                                        ))
+                                    }
+                                </ul>
+                            }
+                            </div>
+                        }
                         <Form onSubmit={saveUser}>
                             <Modal.Body>
 
@@ -327,20 +347,23 @@ function Users() {
                                     </div>
                                 </div>
                                 <div className="row">
-                                    <div className="col-lg-6">
+                                    <div className={`${isEditMode?'col-lg-12':'col-lg-6'}`}>
                                         <div className="mb-3">
                                             <FormField label="Phone" name="phone" onChange={handleChange}
                                                        value={formData.phone}
                                                        id="phone"/>
                                         </div>
                                     </div>
-                                    <div className="col-lg-6">
-                                        <div className="mb-3">
-                                            <FormField label="Password" name="password" type="password" onChange={handleChange}
-                                                       value={formData.password}
-                                                       id="phone"/>
+                                    {
+                                        !isEditMode && <div className="col-lg-6">
+                                            <div className="mb-3">
+                                                <FormField label="Password" name="password" type="password"
+                                                           onChange={handleChange}
+                                                           value={formData.password}
+                                                           id="phone"/>
+                                            </div>
                                         </div>
-                                    </div>
+                                    }
                                 </div>
                                 <div className="mb-3">
                                     <label htmlFor="role" className="form-label">

@@ -52,6 +52,8 @@ function Login() {
                 }
             }).catch((error) => {
                 console.log(error);
+            }).finally(() => {
+                setSubmitting(false);
             });
         }
     }

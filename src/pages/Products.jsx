@@ -26,6 +26,8 @@ function Products() {
     const [search, setSearch] = useState('');
     const pageSize = 10;
     const [categories, setCategories] = useState([]);
+    const [validations, setValidations] = useState([]);
+    const [units,setUnits] = useState([]);
     const [formData, setFormData] = useState({
         name: "",
         unitId: "",
@@ -95,8 +97,10 @@ function Products() {
             name: product.name,
             code: product.code,
             unitId: product.unitId,
-            supplierId: product.supplierId,
+            categoryId: product.categoryId,
             note: formData.address,
+            price: formData.price,
+            brandId: formData.brandId,
             status: product.status
         });
         setSelectedUserId(product.id);
@@ -148,6 +152,19 @@ function Products() {
             }
         });
     };
+    const fetchUnits = () => {
+        http.get("/units")
+            .then((res) => {
+                console.log(res);
+                let data = res.data;
+                setUnits(data);
+            }).catch(() => {
+
+        })
+            .finally(() => {
+                setIsLoading(false);
+            });
+    }
     const fetchCategories = () => {
         setIsLoading(true);
         http.get("/categories")
@@ -170,9 +187,10 @@ function Products() {
         http[method](url, {
             name: formData.name,
             code: formData.email,
-            units: formData.phone,
+            units: formData.unitId,
             status: "pending",
             note: formData.address,
+            categoryId: formData.categoryId,
             supplierId: formData.supplier
         }).then((res) => {
             console.log(res);
@@ -194,6 +212,7 @@ function Products() {
     useEffect(() => {
         fetchProducts();
         fetchCategories();
+        fetchUnits()
     }, []);
     useEffect(() => {
 
@@ -331,16 +350,25 @@ function Products() {
                                 </div>
                             </div>
                             <div className="mb-3">
-                                <FormField label="Units" name="phone" onChange={handleChange}
-                                           value={formData.phone}
-                                           id="phone"/>
+                                <label htmlFor="role" className="form-label">
+                                    Units <FaAsterisk className="text-danger ms-1" size={10}/>
+                                </label>
+                                <select className="form-select tw-py-3" onChange={handleChange} name="unitId"
+                                        value={formData.unitId} aria-label="Default select example">
+                                    <option value="" disabled>Select unit</option>
+                                    {
+                                        units.map((unit, index) => (
+                                            <option key={index} value={unit.id}>{unit.name}</option>
+                                        ))
+                                    }
+                                </select>
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="role" className="form-label">
                                     Category <FaAsterisk className="text-danger ms-1" size={10}/>
                                 </label>
-                                <select className="form-select tw-py-3" onChange={handleChange} name="category"
-                                        value={formData.category} aria-label="Default select example">
+                                <select className="form-select tw-py-3" onChange={handleChange} name="categoryId"
+                                        value={formData.categoryId} aria-label="Default select example">
                                     <option value="" disabled>Select Category</option>
                                     {
                                         categories.map((cat, index) => (

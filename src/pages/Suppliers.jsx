@@ -11,9 +11,9 @@ import _ from "lodash";
 import AppPagination from "../components/common/AppPagination.jsx";
 import {paginate} from "../components/common/paginate.jsx";
 import {format} from 'date-fns';
-import {fetchBranches, loadRoles} from "../services/authService.js";
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
+
 
 function Users() {
     const {setActiveLinkGlobal} = useActiveLink();
@@ -23,8 +23,7 @@ function Users() {
     const [users, setUsers] = useState([]);
     const [search, setSearch] = useState('');
     const pageSize = 10;
-    const [branches, setBranches] = useState([]);
-    const [roles, setRoles] = useState([]);
+    const [validations, setValidations] = useState("");
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -158,9 +157,12 @@ function Users() {
             toast.success(res.data.message);
         }).catch((error) => {
             console.log(error);
+            setValidations(error?.response?.data?.errors);
         }).finally(() => {
-            handleCloseModal();
-            fetchSuppliers();
+            if (validations.length < 1) {
+                handleCloseModal();
+                fetchSuppliers();
+            }
         });
     }
 
@@ -285,6 +287,21 @@ function Users() {
                     <Modal.Header closeButton>
                         <Modal.Title>{isEditMode ? "Edit Supplier" : "Add New Supplier"}</Modal.Title>
                     </Modal.Header>
+                    <Container className="py-2">
+                        {
+                            validations &&
+                            <div className="alert alert-danger">{
+                                validations && <ul>
+                                    {
+                                        validations.map((error, index) => (
+                                            <li className="text-danger" key={index}>{error?.msg}</li>
+                                        ))
+                                    }
+                                </ul>
+                            }
+                            </div>
+                        }
+                    </Container>
                     <Form onSubmit={saveUser}>
                         <Modal.Body>
 
