@@ -17,6 +17,7 @@ import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
 import Td from "../../components/common/Td.jsx";
 import brandLogo from "../../assets/brand_logo.png"
+import Joi from "joi";
 
 function ProductCategory() {
     const {setActiveLinkGlobal} = useActiveLink();
@@ -25,6 +26,8 @@ function ProductCategory() {
     const [isLoading, setIsLoading] = useState(false);
     const [categories, setCategories] = useState([]);
     const [search, setSearch] = useState('');
+    const [errors, setErrors] = useState({});
+    const [validations, setValidations] = useState("");
     const pageSize = 10;
     const [suppliers, setSuppliers] = useState([]);
     const [formData, setFormData] = useState({
@@ -34,6 +37,10 @@ function ProductCategory() {
     const [imagePreview, setImagePreview] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(null);
+    const validationSchema=Joi.object({
+        name:Joi.string().required().label("Name"),
+        image:Joi.string().required().label("Image")
+    });
 
     const fetchCategories = () => {
         setIsLoading(true);
@@ -163,22 +170,34 @@ function ProductCategory() {
 
     const saveProduct = (e) => {
         e.preventDefault();
-        const url = isEditMode ? `/categories/${selectedUserId}` : "/categories";
-        const method = isEditMode ? "put" : "post";
-        http[method](url, {
-            name: formData.name,
-            image:formData.image
-        }, {headers: {
-            'Content-Type': 'multipart/form-data',
-        }}).then((res) => {
-            console.log(res);
-            toast.success(res.data.message);
-        }).catch((error) => {
-            console.log(error);
-        }).finally(() => {
-            handleCloseModal();
-            fetchCategories();
-        });
+        setValidations("");
+        setErrors({})
+        const {error} = validationSchema.validate(formData, {abortEarly: false});
+        if (error) {
+            setErrors(error.details.reduce((errors, error) => {
+                errors[error.path[0]] = error.message;
+                return errors;
+            }, {}));
+        } else {
+            const url = isEditMode ? `/categories/${selectedUserId}` : "/categories";
+            const method = isEditMode ? "put" : "post";
+            http[method](url, {
+                name: formData.name,
+                image: formData.image
+            }, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            }).then((res) => {
+                console.log(res);
+                toast.success(res.data.message);
+            }).catch((error) => {
+                console.log(error);
+            }).finally(() => {
+                handleCloseModal();
+                fetchCategories();
+            });
+        }
     }
 
     function handleSearch(event) {
@@ -313,7 +332,9 @@ function ProductCategory() {
                             <div className="row">
                                 <div className="col-lg-12">
                                     <div className="mb-3">
-                                        <FormField label="Name" onChange={handleChange} value={formData.name}
+                                        <FormField label="Name"
+                                                   error={errors.name}
+                                                   onChange={handleChange} value={formData.name}
                                                    name="name" id="name"/>
                                     </div>
                                 </div>

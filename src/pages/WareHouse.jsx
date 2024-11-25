@@ -13,22 +13,30 @@ import _ from "lodash";
 import AppPagination from "../components/common/AppPagination.jsx";
 import {paginate} from "../components/common/paginate.jsx";
 import {format} from 'date-fns';
-import {fetchBranches, loadRoles} from "../services/authService.js";
+import {loadRoles} from "../services/authService.js";
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
+import Joi from "joi";
+
+
+const validationSchema = Joi.object({
+    name: Joi.string().required().label('Name'),
+    shortName: Joi.string().required().label('Short Name')
+});
 
 function Users() {
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [validations, setValidations] = useState("");
     const [branches, setBranches] = useState([]);
     const [search, setSearch] = useState('');
     const pageSize = 10;
-    const [roles, setRoles] = useState([]);
     const [formData, setFormData] = useState({
         name: "",
-        shortName:""
+        shortName: ""
     });
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(null);
@@ -37,7 +45,6 @@ function Users() {
         setIsLoading(true);
         http.get("/branches")
             .then((res) => {
-                console.log(res);
                 let data = res.data;
                 setBranches(data);
             }).catch(() => {
@@ -46,15 +53,6 @@ function Users() {
             .finally(() => {
                 setIsLoading(false);
             });
-    }
-    const fetchRoles = () => {
-        setIsLoading(true);
-        loadRoles().then((res) => {
-            setIsLoading(false);
-            setRoles(res);
-        }).catch(() => {
-            console.log("Error fetching roles");
-        });
     }
     const handleChange = (e) => {
         setFormData({
@@ -69,7 +67,7 @@ function Users() {
         setIsEditMode(false);
         setFormData({
             name: "",
-            shortName:""
+            shortName: ""
         });
     };
     const getPagedData = () => {
@@ -89,7 +87,7 @@ function Users() {
     const handleEdit = (branch) => {
         setFormData({
             name: branch.name,
-            shortName:branch.shortName
+            shortName: branch.shortName
         });
         setSelectedUserId(branch.id);
         setIsEditMode(true);
@@ -118,11 +116,9 @@ function Users() {
             if (result.isConfirmed) {
                 http.delete(`/branches/${userId}`)
                     .then((res) => {
-                        console.log(res);
                         toast.success(res.data.message);
                         fetchBranches();
                     }).catch((error) => {
-                    console.log(error);
                     toast.error(error.response.data.message);
                 });
 
@@ -143,21 +139,49 @@ function Users() {
 
     const saveBranch = (e) => {
         e.preventDefault();
-        const url = isEditMode ? `/branches/${selectedUserId}` : "/branches";
-        const method = isEditMode ? "put" : "post";
-        http[method](url, {
-            name: formData.name,
-            shortName:formData.shortName.toUpperCase()
-        }).then((res) => {
-            console.log(res);
-            toast.success(res.data.message);
-        }).catch((error) => {
-            console.log(error);
-        }).finally(() => {
+        setValidations("");
+        setErrors({})
+        const {error} = validationSchema.validate(formData, {abortEarly: false});
+        if (error) {
+            setErrors(error.details.reduce((errors, error) => {
+                errors[error.path[0]] = error.message;
+                return errors;
+            }, {}));
+        } else {
+            const url = isEditMode ? `/branches/${selectedUserId}` : "/branches";
+            const method = isEditMode ? "put" : "post";
+            http[method](url, {
+                name: formData.name,
+                shortName: formData.shortName.toUpperCase()
+            }).then((res) => {
+                console.log(res);
+                toast.success(res.data.message);
+                if (res.data.action === 1) {
+                    handleCloseModal();
+                    setFormData({
+                        name: "",
+                        shortName: ""
+                    });
+                    fetchBranches();
+                }
+            }).catch((error) => {
+                console.log(error);
+                setValidations(error?.response?.data?.errors);
+            }).finally(() => {
+
+            });
+
+        }
+        if (validations === null) {
             handleCloseModal();
+            setFormData({
+                name: "",
+                shortName: ""
+            });
             fetchBranches();
-        });
+        }
     }
+    console.log(validations);
 
     function handleSearch(event) {
         setSearch(event.target.value);
@@ -167,7 +191,6 @@ function Users() {
 
     useEffect(() => {
         fetchBranches();
-        fetchRoles();
     }, []);
     useEffect(() => {
 
@@ -233,10 +256,10 @@ function Users() {
                                     {
                                         paginatedBranches.map((branch, index) => (
                                             <tr key={index}>
-                                                <td className="tw-text-xs">{format(new Date(branch.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
-                                                <td className="tw-text-xs">{branch.name}</td>
-                                                <td className="tw-text-xs">{branch.shortName}</td>
-                                                <td className="tw-text-xs">
+                                                <td className="tw-text-sm">{format(new Date(branch.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
+                                                <td className="tw-text-sm">{branch.name}</td>
+                                                <td className="tw-text-sm">{branch.shortName}</td>
+                                                <td className="tw-text-sm">
                                                     <Dropdown>
                                                         <Dropdown.Toggle variant="primary" className="tw-text-white"
                                                                          id="dropdown-basic">
@@ -273,17 +296,40 @@ function Users() {
                     </div>
                 </div>
 
-                <Modal show={showModal}  onHide={handleCloseModal}>
+                <Modal show={showModal} onHide={handleCloseModal}>
                     <Modal.Header closeButton>
                         <Modal.Title>{isEditMode ? "Edit Branch" : "Add New Branch"}</Modal.Title>
                     </Modal.Header>
+
                     <Form onSubmit={saveBranch}>
                         <Modal.Body>
-
-                            <FormField label="Name" onChange={handleChange} value={formData.name}
-                                       name="name" id="name"/>
-                            <FormField label="Short Name" onChange={handleChange} value={formData.shortName}
-                                       name="shortName" id="shortName"/>
+                            {
+                                validations &&
+                                <div className="alert alert-danger">{
+                                    validations && <ul>
+                                        {
+                                            validations.map((error, index) => (
+                                                <li className="text-danger" key={index}>{error?.msg}</li>
+                                            ))
+                                        }
+                                    </ul>
+                                }
+                                </div>
+                            }
+                            <div className="mb-3">
+                                <FormField label="Name"
+                                           onChange={handleChange}
+                                           error={errors.name}
+                                           value={formData.name}
+                                           name="name" id="name"/>
+                            </div>
+                            <div className="mb-3">
+                                <FormField label="Short Name"
+                                           onChange={handleChange}
+                                           error={errors.shortName}
+                                           value={formData.shortName}
+                                           name="shortName" id="shortName"/>
+                            </div>
 
                         </Modal.Body>
                         <Modal.Footer>

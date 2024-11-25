@@ -83,9 +83,9 @@ const PasswordForm = ({setShow}) => {
                     newPassword: "",
                     confirmPassword: "",
                 });
-                // {
-                //     !validations && setShow(false);
-                // }
+                {
+                    !validations && setShow(false);
+                }
             });
         }
     }

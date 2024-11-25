@@ -1,4 +1,4 @@
-import {Container, Table, Pagination, Modal, Button, Form, Dropdown} from "react-bootstrap";
+import {Container, Table, Pagination, Modal, Button, Form, Dropdown, Row} from "react-bootstrap";
 import {Link} from "react-router-dom";
 import Th from "../components/common/Th.jsx";
 import {BsPlus} from "react-icons/bs";
@@ -13,10 +13,19 @@ import _ from "lodash";
 import AppPagination from "../components/common/AppPagination.jsx";
 import {paginate} from "../components/common/paginate.jsx";
 import {format} from 'date-fns';
-import {fetchBranches, loadRoles} from "../services/authService.js";
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
-
+import Joi from "joi";
+import ErrorMessage from "../components/common/ErrorMessage.jsx";
+const validationSchema = Joi.object({
+    name: Joi.string().required().label("Name"),
+    code: Joi.string().required().label("Code"),
+    unitId: Joi.string().required().label("Unit"),
+    categoryId: Joi.string().required().label("Category"),
+    brandId: Joi.string().required().label("Brand"),
+    price: Joi.string().required().label("Price"),
+    note: Joi.string().label("Note"),
+});
 function Products() {
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
@@ -27,7 +36,9 @@ function Products() {
     const pageSize = 10;
     const [categories, setCategories] = useState([]);
     const [validations, setValidations] = useState([]);
-    const [units,setUnits] = useState([]);
+    const [errors, setErrors] = useState({});
+    const [brands, setBrands] = useState([]);
+    const [units, setUnits] = useState([]);
     const [formData, setFormData] = useState({
         name: "",
         unitId: "",
@@ -44,7 +55,6 @@ function Products() {
         setIsLoading(true);
         http.get("/products")
             .then((res) => {
-                console.log(res);
                 let data = res.data;
                 setProducts(data);
             }).catch(() => {
@@ -59,6 +69,7 @@ function Products() {
             ...formData,
             [e.target.name]: e.target.value
         });
+        setErrors({})
     }
 
     const handleShowModal = () => setShowModal(true);
@@ -98,10 +109,9 @@ function Products() {
             code: product.code,
             unitId: product.unitId,
             categoryId: product.categoryId,
-            note: formData.address,
-            price: formData.price,
-            brandId: formData.brandId,
-            status: product.status
+            note: product.note,
+            price: Number(product.price),
+            brandId: product.brandId,
         });
         setSelectedUserId(product.id);
         setIsEditMode(true);
@@ -130,7 +140,6 @@ function Products() {
             if (result.isConfirmed) {
                 http.delete(`/products/${productId}`)
                     .then((res) => {
-                        console.log(res);
                         toast.success(res.data.message);
                         fetchProducts();
                     }).catch((error) => {
@@ -155,7 +164,6 @@ function Products() {
     const fetchUnits = () => {
         http.get("/units")
             .then((res) => {
-                console.log(res);
                 let data = res.data;
                 setUnits(data);
             }).catch(() => {
@@ -169,9 +177,21 @@ function Products() {
         setIsLoading(true);
         http.get("/categories")
             .then((res) => {
-                console.log(res);
                 let data = res.data;
                 setCategories(data);
+            }).catch(() => {
+
+        })
+            .finally(() => {
+                setIsLoading(false);
+            });
+    }
+    const fetchBrands = () => {
+        setIsLoading(true);
+        http.get("/brands")
+            .then((res) => {
+                let data = res.data;
+                setBrands(data);
             }).catch(() => {
 
         })
@@ -182,25 +202,36 @@ function Products() {
 
     const saveProduct = (e) => {
         e.preventDefault();
-        const url = isEditMode ? `/products/${selectedUserId}` : "/products";
-        const method = isEditMode ? "put" : "post";
-        http[method](url, {
-            name: formData.name,
-            code: formData.email,
-            units: formData.unitId,
-            status: "pending",
-            note: formData.address,
-            categoryId: formData.categoryId,
-            supplierId: formData.supplier
-        }).then((res) => {
-            console.log(res);
-            toast.success(res.data.message);
-        }).catch((error) => {
-            console.log(error);
-        }).finally(() => {
-            handleCloseModal();
-            fetchProducts();
-        });
+        setValidations("");
+        setErrors({})
+        const {error} = validationSchema.validate(formData, {abortEarly: false});
+        if (error) {
+            setErrors(error.details.reduce((errors, error) => {
+                errors[error.path[0]] = error.message;
+                return errors;
+            }, {}));
+        } else {
+            const url = isEditMode ? `/products/${selectedUserId}` : "/products";
+            const method = isEditMode ? "put" : "post";
+            http[method](url, {
+                name: formData.name,
+                code: formData.code,
+                unitId: formData.unitId,
+                note: formData.note,
+                categoryId: formData.categoryId,
+                brandId: formData.brandId,
+                price:Number(formData.price)
+            }).then((res) => {
+                toast.success(res.data.message);
+                if (res.data.action === 1) {
+                    handleCloseModal();
+                    fetchProducts();
+                }
+            }).catch((error) => {
+                console.log(error);
+                setValidations(error?.response?.data?.errors);
+            });
+        }
     }
 
     function handleSearch(event) {
@@ -213,6 +244,7 @@ function Products() {
         fetchProducts();
         fetchCategories();
         fetchUnits()
+        fetchBrands()
     }, []);
     useEffect(() => {
 
@@ -267,7 +299,7 @@ function Products() {
 
                                     <Th column="Name"/>
                                     <Th column="Code"/>
-                                    <Th column="Unit"/>
+                                    <Th column="Price"/>
                                     <Th column="Status"/>
                                     <Th column="Description"/>
                                     <th className="border-top-0 border-0 border border-primary cursor-pointer">
@@ -279,18 +311,18 @@ function Products() {
                                     </thead>
                                     <tbody>
                                     {
-                                        paginatedProducts.map((user, index) => (
+                                        paginatedProducts.map((product, index) => (
                                             <tr key={index}>
-                                                <td className="tw-text-xs">{format(new Date(user.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
-                                                <td className="tw-text-xs">{user.name}</td>
-                                                <td className="tw-text-xs">{user.code}</td>
-                                                <td className="tw-text-xs">{user.units}</td>
+                                                <td className="tw-text-xs">{format(new Date(product.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
+                                                <td className="tw-text-xs">{product.name}</td>
+                                                <td className="tw-text-xs">{product.code}</td>
+                                                <td className="tw-text-xs">{product.price}</td>
                                                 <td className="tw-text-xs">
                                                     <span
-                                                        className={`badge bg-${user.status === 'active' ? 'success' : 'danger'}`}>{user.status}</span>
+                                                        className={`badge bg-${product.status === 'active' ? 'success' : 'danger'}`}>{product.status}</span>
 
                                                 </td>
-                                                <td className="tw-text-xs">{user.note}</td>
+                                                <td className="tw-text-xs">{product.note}</td>
                                                 <td className="tw-text-xs">
                                                     <Dropdown>
                                                         <Dropdown.Toggle variant="primary" className="tw-text-white"
@@ -300,9 +332,9 @@ function Products() {
 
                                                         <Dropdown.Menu>
                                                             <Dropdown.Item
-                                                                onClick={() => handleEdit(user)}>Edit</Dropdown.Item>
+                                                                onClick={() => handleEdit(product)}>Edit</Dropdown.Item>
                                                             <Dropdown.Item
-                                                                onClick={() => handleDelete(user.id)}>Delete</Dropdown.Item>
+                                                                onClick={() => handleDelete(product.id)}>Delete</Dropdown.Item>
                                                         </Dropdown.Menu>
                                                     </Dropdown>
                                                 </td>
@@ -334,53 +366,104 @@ function Products() {
                     </Modal.Header>
                     <Form onSubmit={saveProduct}>
                         <Modal.Body>
-
+                            {
+                                validations.length > 0 &&
+                                <div className="alert alert-danger">
+                                    <ul>
+                                        {
+                                            validations.map((error, index) => (
+                                                <li className="text-danger" key={index}>{error?.msg}</li>
+                                            ))
+                                        }
+                                    </ul>
+                                </div>
+                            }
                             <div className="row">
                                 <div className="col-lg-6">
                                     <div className="mb-3">
-                                        <FormField label="Name" onChange={handleChange} value={formData.name}
+                                        <FormField label="Name"
+                                                   error={errors.name}
+                                                   onChange={handleChange} value={formData.name}
                                                    name="name" id="name"/>
                                     </div>
                                 </div>
                                 <div className="col-lg-6">
                                     <div className="mb-3">
-                                        <FormField label="Code" onChange={handleChange} value={formData.email}
-                                                   name="email" id="email"/>
+                                        <FormField label="Code"
+                                                    error={errors.code}
+                                                   onChange={handleChange}
+                                                   value={formData.code}
+                                                   name="code" id="code"/>
                                     </div>
                                 </div>
                             </div>
+                            <Row>
+                                <div className="mb-3 col-lg-6">
+                                    <label htmlFor="role" className="form-label">
+                                        Units <FaAsterisk className="text-danger ms-1" size={10}/>
+                                    </label>
+                                    <select className={`form-select ${errors.unitId ? 'is-invalid' : ''} tw-py-3`}
+                                            onChange={handleChange} name="unitId"
+                                            value={formData.unitId} aria-label="Default select example">
+                                        <option value="" disabled>Select unit</option>
+                                        {
+                                            units.map((unit, index) => (
+                                                <option key={index} value={unit.id}>{unit.name}</option>
+                                            ))
+                                        }
+                                    </select>
+                                    <ErrorMessage error={errors.unitId}/>
+                                </div>
+                                <div className="mb-3 col-lg-6">
+                                    <label htmlFor="role" className="form-label">
+                                        Brands <FaAsterisk className="text-danger ms-1" size={10}/>
+                                    </label>
+                                    <select className={`form-select ${errors.brandId ? 'is-invalid' : ''} tw-py-3`} onChange={handleChange} name="brandId"
+                                            value={formData.brandId} aria-label="Default select example">
+                                        <option value="" disabled>Select Brand</option>
+                                        {
+                                            brands.map((unit, index) => (
+                                                <option key={index} value={unit.id}>{unit.name}</option>
+                                            ))
+                                        }
+                                    </select>
+                                    <ErrorMessage error={errors.brandId}/>
+                                </div>
+                                <div className="mb-3 col-lg-6">
+                                    <label htmlFor="role" className="form-label">
+                                        Category <FaAsterisk className="text-danger ms-1" size={10}/>
+                                    </label>
+                                    <select className={`form-select ${errors.categoryId ? 'is-invalid' : ''} tw-py-3`} onChange={handleChange} name="categoryId"
+                                            value={formData.categoryId} aria-label="Default select example">
+                                        <option value="" disabled>Select Category</option>
+                                        {
+                                            categories.map((cat, index) => (
+                                                <option key={index} value={cat.id}>{cat.name}</option>
+                                            ))
+                                        }
+                                    </select>
+                                    <ErrorMessage error={errors.categoryId}/>
+                                </div>
+                                <div className="col-lg-6">
+                                    <div className="mb-3">
+                                        <FormField label="Price"
+                                                   type="number"
+                                                   error={errors.price}
+                                                   onChange={handleChange}
+                                                   value={formData.price}
+                                                   name="price" id="price"/>
+                                    </div>
+                                </div>
+                            </Row>
+
                             <div className="mb-3">
-                                <label htmlFor="role" className="form-label">
-                                    Units <FaAsterisk className="text-danger ms-1" size={10}/>
-                                </label>
-                                <select className="form-select tw-py-3" onChange={handleChange} name="unitId"
-                                        value={formData.unitId} aria-label="Default select example">
-                                    <option value="" disabled>Select unit</option>
-                                    {
-                                        units.map((unit, index) => (
-                                            <option key={index} value={unit.id}>{unit.name}</option>
-                                        ))
-                                    }
-                                </select>
-                            </div>
-                            <div className="mb-3">
-                                <label htmlFor="role" className="form-label">
-                                    Category <FaAsterisk className="text-danger ms-1" size={10}/>
-                                </label>
-                                <select className="form-select tw-py-3" onChange={handleChange} name="categoryId"
-                                        value={formData.categoryId} aria-label="Default select example">
-                                    <option value="" disabled>Select Category</option>
-                                    {
-                                        categories.map((cat, index) => (
-                                            <option key={index} value={cat.id}>{cat.name}</option>
-                                        ))
-                                    }
-                                </select>
-                            </div>
-                            <div className="mb-3">
-                                <FormField label="Notes" name="address" type="textarea" onChange={handleChange}
-                                           value={formData.address}
-                                           id="address"/>
+                                <FormField label="Notes"
+                                           name="note"
+                                           error={errors.note}
+                                           type="textarea"
+                                           onChange={handleChange}
+                                           value={formData.note}
+                                           id="note"/>
                             </div>
 
                         </Modal.Body>
