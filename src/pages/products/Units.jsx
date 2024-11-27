@@ -77,9 +77,7 @@ function Units() {
         if (search) {
             filtered = filtered.filter((brand) =>
                 (brand.name.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (brand.code.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (brand.status.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (brand.note.toLowerCase() || '').includes(search.toLowerCase())
+                (brand.createdAt.toLowerCase() || '').includes(search.toLowerCase())
             );
         }
         const paginated = paginate(filtered, currentPage, pageSize)
@@ -232,7 +230,7 @@ function Units() {
                                     <button className="btn tw-py-3 px-4 text-white btn-primary"
                                             onClick={handleShowModal}>
                                         <BsPlus/>
-                                        Add Category
+                                        Add Unit
                                     </button>
                                 </div>
                                 <Table hover responsive>
@@ -296,7 +294,7 @@ function Units() {
 
                 <Modal show={showModal}  onHide={handleCloseModal}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{isEditMode ? "Edit Product" : "Add New Product"}</Modal.Title>
+                        <Modal.Title>{isEditMode ? "Edit Units" : "Add New Units"}</Modal.Title>
                     </Modal.Header>
                     <Form onSubmit={saveProduct}>
                         <Modal.Body>

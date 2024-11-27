@@ -16,6 +16,17 @@ import {format} from 'date-fns';
 import {fetchBranches, loadRoles} from "../services/authService.js";
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
+import Joi from "joi";
+import ErrorMessage from "../components/common/ErrorMessage.jsx";
+
+const validationSchema = Joi.object({
+    name: Joi.string().required().min(3).max(50),
+    email: Joi.string().email({tlds: {allow: false}}).required(),
+    phone: Joi.string().required().min(10).max(15),
+    role: Joi.number().required(),
+    branch: Joi.number().required(),
+    password: Joi.string().allow("").min(8).max(20).required()
+});
 
 function Users() {
     const {setActiveLinkGlobal} = useActiveLink();
@@ -23,6 +34,7 @@ function Users() {
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [users, setUsers] = useState([]);
+    const [errors, setErrors] = useState({});
     const [search, setSearch] = useState('');
     const pageSize = 10;
     const [branches, setBranches] = useState([]);
@@ -43,7 +55,6 @@ function Users() {
         setIsLoading(true);
         http.get("/users")
             .then((res) => {
-                console.log(res);
                 let data = res.data;
                 setUsers(data);
             }).catch(() => {
@@ -55,7 +66,6 @@ function Users() {
     }
     const loadBranches = () => {
         fetchBranches().then((res) => {
-            console.log(res);
             setBranches(res);
         }).catch(() => {
             console.log("Error fetching branches");
@@ -75,6 +85,7 @@ function Users() {
             ...formData,
             [e.target.name]: e.target.value
         });
+        setErrors({...errors, [e.target.name]: ""});
     }
 
     const handleShowModal = () => setShowModal(true);
@@ -120,8 +131,8 @@ function Users() {
         setSelectedUserId(user.id);
         setIsEditMode(true);
         setShowModal(true);
+        setErrors({...errors, name: "", email: "", phone: "", role: "", branch: "", password: ""})
     };
-
 
 
     const handleDelete = (userId) => {
@@ -145,7 +156,6 @@ function Users() {
             if (result.isConfirmed) {
                 http.delete(`/users/${userId}`)
                     .then((res) => {
-                        console.log(res);
                         toast.success("User deleted successfully");
                         fetchUsers();
                     }).catch((error) => {
@@ -170,30 +180,39 @@ function Users() {
 
     const saveUser = (e) => {
         e.preventDefault();
-        const url = isEditMode ? `/users/${selectedUserId}` : "/users";
-        const method = isEditMode ? "put" : "post";
-        const payload = {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            roleId: formData.role,
-            branchId: formData.branch,
-        };
-        if (formData.password) {
-            payload.password = formData.password;
-        }
-        http[method](url, payload).then((res) => {
-            console.log(res);
-            toast.success(res.data.message);
-        }).catch((error) => {
-            console.log(error);
-            setValidations(error?.response?.data?.errors);
-        }).finally(() => {
-            if (!validations){
-                handleCloseModal();
-                fetchUsers();
+        setValidations("");
+        setErrors({})
+        const {error} = validationSchema.validate(formData, {abortEarly: false});
+        if (error) {
+            setErrors(error.details.reduce((errors, error) => {
+                errors[error.path[0]] = error.message;
+                return errors;
+
+            }, {}));
+        } else {
+            const url = isEditMode ? `/users/${selectedUserId}` : "/users";
+            const method = isEditMode ? "put" : "post";
+            const payload = {
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                roleId: formData.role,
+                branchId: formData.branch,
+            };
+            if (formData.password) {
+                payload.password = formData.password;
             }
-        });
+            http[method](url, payload).then((res) => {
+                toast.success(res.data.message);
+                if (res.data.action === 1) {
+                    handleCloseModal();
+                    fetchUsers();
+                }
+            }).catch((error) => {
+                console.log(error);
+                setValidations(error?.response?.data?.errors);
+            });
+        }
     }
 
     function handleSearch(event) {
@@ -284,8 +303,10 @@ function Users() {
                                                         </Dropdown.Toggle>
 
                                                         <Dropdown.Menu>
-                                                            <Dropdown.Item onClick={() => handleEdit(user)}>Edit</Dropdown.Item>
-                                                            <Dropdown.Item onClick={() => handleDelete(user.id)}>Delete</Dropdown.Item>
+                                                            <Dropdown.Item
+                                                                onClick={() => handleEdit(user)}>Edit</Dropdown.Item>
+                                                            <Dropdown.Item
+                                                                onClick={() => handleDelete(user.id)}>Delete</Dropdown.Item>
                                                         </Dropdown.Menu>
                                                     </Dropdown>
                                                 </td>
@@ -316,40 +337,49 @@ function Users() {
                         <Modal.Header closeButton>
                             <Modal.Title>{isEditMode ? "Edit User" : "Add New User"}</Modal.Title>
                         </Modal.Header>
-                        {
-                            validations &&
-                            <div className="alert alert-danger">{
-                                validations && <ul>
-                                    {
-                                        validations.map((error, index) => (
-                                            <li className="text-danger" key={index}>{error?.msg}</li>
-                                        ))
-                                    }
-                                </ul>
-                            }
-                            </div>
-                        }
+
                         <Form onSubmit={saveUser}>
                             <Modal.Body>
-
+                                {
+                                    validations &&
+                                    <div className="alert alert-danger">{
+                                        validations && <ul>
+                                            {
+                                                validations.map((error, index) => (
+                                                    <li className="text-danger" key={index}>{error?.msg}</li>
+                                                ))
+                                            }
+                                        </ul>
+                                    }
+                                    </div>
+                                }
                                 <div className="row">
                                     <div className="col-lg-6">
                                         <div className="mb-3">
-                                            <FormField label="Name" onChange={handleChange} value={formData.name}
+                                            <FormField label="Name"
+                                                       error={errors?.name}
+                                                       onChange={handleChange}
+                                                       value={formData.name}
                                                        name="name" id="name"/>
                                         </div>
                                     </div>
                                     <div className="col-lg-6">
                                         <div className="mb-3">
-                                            <FormField label="Email" onChange={handleChange} value={formData.email}
+                                            <FormField label="Email"
+                                                       error={errors?.email}
+                                                       onChange={handleChange}
+                                                       value={formData.email}
                                                        name="email" id="email"/>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="row">
-                                    <div className={`${isEditMode?'col-lg-12':'col-lg-6'}`}>
+                                    <div className={`${isEditMode ? 'col-lg-12' : 'col-lg-6'}`}>
                                         <div className="mb-3">
-                                            <FormField label="Phone" name="phone" onChange={handleChange}
+                                            <FormField label="Phone"
+                                                       name="phone"
+                                                       error={errors?.phone}
+                                                       onChange={handleChange}
                                                        value={formData.phone}
                                                        id="phone"/>
                                         </div>
@@ -360,6 +390,7 @@ function Users() {
                                                 <FormField label="Password" name="password" type="password"
                                                            onChange={handleChange}
                                                            value={formData.password}
+                                                           error={errors?.password}
                                                            id="phone"/>
                                             </div>
                                         </div>
@@ -369,7 +400,7 @@ function Users() {
                                     <label htmlFor="role" className="form-label">
                                         Role <FaAsterisk className="text-danger ms-1" size={10}/>
                                     </label>
-                                    <select className="form-select tw-py-3" onChange={handleChange} name="role"
+                                    <select className={`form-select tw-py-3 ${errors?.role ? 'is-invalid' : ''}`} onChange={handleChange} name="role"
                                             value={formData.role} aria-label="Default select example">
                                         <option value="" disabled>Select Role</option>
                                         {
@@ -378,12 +409,13 @@ function Users() {
                                             ))
                                         }
                                     </select>
+                                    <ErrorMessage error={errors?.role}/>
                                 </div>
                                 <div className="mb-3">
                                     <label htmlFor="branch" className="form-label">
                                         Branch <FaAsterisk className="text-danger ms-1" size={10}/>
                                     </label>
-                                    <select className="form-select tw-py-3" onChange={handleChange} name="branch"
+                                    <select className={`form-select tw-py-3 ${errors?.branch ? 'is-invalid' : ''}`} onChange={handleChange} name="branch"
                                             value={formData.branch} aria-label="Default select example">
                                         <option value="" disabled>Select Branch</option>
                                         {
@@ -392,6 +424,7 @@ function Users() {
                                             ))
                                         }
                                     </select>
+                                    <ErrorMessage error={errors?.branch}/>
                                 </div>
 
                             </Modal.Body>

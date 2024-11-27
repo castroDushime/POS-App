@@ -2,11 +2,9 @@ import {Container, Table,Modal, Button, Form, Dropdown} from "react-bootstrap";
 import {Link} from "react-router-dom";
 import Th from "../../components/common/Th.jsx";
 import {BsPlus} from "react-icons/bs";
-import {LuEye} from "react-icons/lu";
 import {useEffect, useState} from "react";
 import {useActiveLink} from "../../providers/ActiveLinkProvider.jsx";
 import FormField from "../../components/common/FormField.jsx";
-import {FaAsterisk} from "react-icons/fa6";
 import http from "../../services/httpService.js";
 import ContentLoader from "react-content-loader";
 import _ from "lodash";
@@ -19,6 +17,8 @@ import Td from "../../components/common/Td.jsx";
 import brandLogo from "../../assets/brand_logo.png"
 import Joi from "joi";
 
+
+let BACK_URL=import.meta.env.VITE_APP_API_URL;
 function ProductCategory() {
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
@@ -32,14 +32,14 @@ function ProductCategory() {
     const [suppliers, setSuppliers] = useState([]);
     const [formData, setFormData] = useState({
         name: "",
-        image: null
+        image: ''
     });
     const [imagePreview, setImagePreview] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(null);
     const validationSchema=Joi.object({
         name:Joi.string().required().label("Name"),
-        image:Joi.string().required().label("Image")
+        image:Joi.any().required().label("Image")
     });
 
     const fetchCategories = () => {
@@ -50,7 +50,6 @@ function ProductCategory() {
                 let data = res.data;
                 setCategories(data);
             }).catch(() => {
-
         })
             .finally(() => {
                 setIsLoading(false);
@@ -168,7 +167,7 @@ function ProductCategory() {
             });
     }
 
-    const saveProduct = (e) => {
+    const saveCategory = (e) => {
         e.preventDefault();
         setValidations("");
         setErrors({})
@@ -177,6 +176,7 @@ function ProductCategory() {
             setErrors(error.details.reduce((errors, error) => {
                 errors[error.path[0]] = error.message;
                 return errors;
+
             }, {}));
         } else {
             const url = isEditMode ? `/categories/${selectedUserId}` : "/categories";
@@ -242,14 +242,14 @@ function ProductCategory() {
                         <div className="card">
                             <div className="card-body">
                                 <h5 className="card-title my-3">All Product Categories</h5>
-                                <div className="d-flex mb-3 justify-content-between align-items-center">
+                                <div className="d-flex mb-3 flex-wrap justify-content-between align-items-center">
                                     <div className="col-lg-4 mb-2">
                                         <FormField type="text" isRequired={false}
                                                    value={search}
                                                    onChange={handleSearch}
                                                    placeholder="Search ..."/>
                                     </div>
-                                    <button className="btn tw-py-3 px-4 text-white btn-primary"
+                                    <button className="btn tw-py-3 px-4  text-white btn-primary"
                                             onClick={handleShowModal}>
                                         <BsPlus/>
                                         Add Category
@@ -277,7 +277,7 @@ function ProductCategory() {
                                                 <td className="tw-text-xs">{format(new Date(category.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
                                                 <td className="tw-text-xs">
 
-                                                    {category.image ? <img src={category.image}
+                                                    {category.image ? <img src={ `${BACK_URL}/uploads/${category.image}`}
                                                                             className="img-thumbnail rounded-circle"
                                                                             style={{width: "60px", height: "60px"}}/> :
                                                         <img src={brandLogo}
@@ -326,7 +326,7 @@ function ProductCategory() {
                     <Modal.Header closeButton>
                         <Modal.Title>{isEditMode ? "Edit Product" : "Add New Product"}</Modal.Title>
                     </Modal.Header>
-                    <Form onSubmit={saveProduct}>
+                    <Form onSubmit={saveCategory}>
                         <Modal.Body className="px-4">
 
                             <div className="row">

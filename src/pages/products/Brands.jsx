@@ -2,11 +2,9 @@ import {Container, Table,Modal, Button, Form, Dropdown} from "react-bootstrap";
 import {Link} from "react-router-dom";
 import Th from "../../components/common/Th.jsx";
 import {BsPlus} from "react-icons/bs";
-import {LuEye} from "react-icons/lu";
 import {useEffect, useState} from "react";
 import {useActiveLink} from "../../providers/ActiveLinkProvider.jsx";
 import FormField from "../../components/common/FormField.jsx";
-import {FaAsterisk} from "react-icons/fa6";
 import http from "../../services/httpService.js";
 import ContentLoader from "react-content-loader";
 import _ from "lodash";
@@ -15,20 +13,23 @@ import {paginate} from "../../components/common/paginate.jsx";
 import {format} from 'date-fns';
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
-
+import Joi from "joi";
+const validationSchema = Joi.object({
+    name: Joi.string().required().label('Name'),
+});
 function Brands() {
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [validations, setValidations] = useState("");
     const [brands, setBrands] = useState([]);
     const [search, setSearch] = useState('');
     const pageSize = 10;
-    const [suppliers, setSuppliers] = useState([]);
     const [formData, setFormData] = useState({
         name: "",
     });
-    const [imagePreview, setImagePreview] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(null);
 
@@ -54,7 +55,6 @@ function Brands() {
                 ...formData,
                 [name]: file
             });
-            setImagePreview(URL.createObjectURL(file));
         } else {
             setFormData({
                 ...formData,
@@ -143,36 +143,33 @@ function Brands() {
             }
         });
     };
-    const fetchSuppliers = () => {
-        setIsLoading(true);
-        http.get("/suppliers")
-            .then((res) => {
-                console.log(res);
-                let data = res.data;
-                setSuppliers(data);
-            }).catch(() => {
 
-        })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }
 
-    const saveProduct = (e) => {
+    const saveBrand = (e) => {
         e.preventDefault();
-        const url = isEditMode ? `/brands/${selectedUserId}` : "/brands";
-        const method = isEditMode ? "put" : "post";
-        http[method](url, {
-            name: formData.name,
-        }).then((res) => {
-            console.log(res);
-            toast.success(res.data.message);
-        }).catch((error) => {
-            console.log(error);
-        }).finally(() => {
-            handleCloseModal();
-            fetchBrands();
-        });
+        setValidations("");
+        setErrors({})
+        const {error} = validationSchema.validate(formData, {abortEarly: false});
+        if (error) {
+            setErrors(error.details.reduce((errors, error) => {
+                errors[error.path[0]] = error.message;
+                return errors;
+            }, {}));
+        } else {
+            const url = isEditMode ? `/brands/${selectedUserId}` : "/brands";
+            const method = isEditMode ? "put" : "post";
+            http[method](url, {
+                name: formData.name,
+            }).then((res) => {
+                console.log(res);
+                toast.success(res.data.message);
+            }).catch((error) => {
+                console.log(error);
+            }).finally(() => {
+                handleCloseModal();
+                fetchBrands();
+            });
+        }
     }
 
     function handleSearch(event) {
@@ -183,7 +180,6 @@ function Brands() {
 
     useEffect(() => {
         fetchBrands();
-        fetchSuppliers();
     }, []);
     useEffect(() => {
 
@@ -227,7 +223,7 @@ function Brands() {
                                     <button className="btn tw-py-3 px-4 text-white btn-primary"
                                             onClick={handleShowModal}>
                                         <BsPlus/>
-                                        Add Category
+                                        Add Brand
                                     </button>
                                 </div>
                                 <Table hover responsive>
@@ -291,15 +287,31 @@ function Brands() {
 
                 <Modal show={showModal}  onHide={handleCloseModal}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{isEditMode ? "Edit Product" : "Add New Product"}</Modal.Title>
+                        <Modal.Title>{isEditMode ? "Edit Brand" : "Add New Brand"}</Modal.Title>
                     </Modal.Header>
-                    <Form onSubmit={saveProduct}>
-                        <Modal.Body>
 
+                    <Form onSubmit={saveBrand}>
+                        <Modal.Body>
+                            {
+                                validations &&
+                                <div className="alert alert-danger">{
+                                    validations && <ul>
+                                        {
+                                            validations.map((error, index) => (
+                                                <li className="text-danger" key={index}>{error?.msg}</li>
+                                            ))
+                                        }
+                                    </ul>
+                                }
+                                </div>
+                            }
                             <div className="row">
                                 <div className="col-lg-12">
                                     <div className="mb-3">
-                                        <FormField label="Name" onChange={handleChange} value={formData.name}
+                                        <FormField label="Name"
+                                                   onChange={handleChange}
+                                                   value={formData.name}
+                                                   error={errors.name}
                                                    name="name" id="name"/>
                                     </div>
                                 </div>

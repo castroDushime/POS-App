@@ -24,7 +24,7 @@ const validationSchema = Joi.object({
     shortName: Joi.string().required().label('Short Name')
 });
 
-function Users() {
+function Branches() {
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
@@ -348,4 +348,4 @@ function Users() {
     );
 }
 
-export default Users;
+export default Branches;

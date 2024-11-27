@@ -13,14 +13,21 @@ import {paginate} from "../components/common/paginate.jsx";
 import {format} from 'date-fns';
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
+import Joi from "joi";
 
-
-function Users() {
+const validationSchema = Joi.object({
+    name: Joi.string().required().label("Name"),
+    email: Joi.string().email({tlds: {allow: false}}).required().label("Email"),
+    phone: Joi.string().min(10).required().label("Phone"),
+    address: Joi.string().required().label("Address"),
+});
+function Suppliers() {
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [users, setUsers] = useState([]);
+    const [errors, setErrors] = useState({});
+    const [suppliers, setSuppliers] = useState([]);
     const [search, setSearch] = useState('');
     const pageSize = 10;
     const [validations, setValidations] = useState("");
@@ -31,15 +38,14 @@ function Users() {
         address: "",
     });
     const [isEditMode, setIsEditMode] = useState(false);
-    const [selectedUserId, setSelectedUserId] = useState(null);
+    const [selectedUserId, setselectedUserId] = useState(null);
 
     const fetchSuppliers = () => {
         setIsLoading(true);
         http.get("/suppliers")
             .then((res) => {
-                console.log(res);
                 let data = res.data;
-                setUsers(data);
+                setSuppliers(data);
             }).catch(() => {
 
         })
@@ -53,6 +59,7 @@ function Users() {
             ...formData,
             [e.target.name]: e.target.value
         });
+        setErrors({...errors, [e.target.name]: ""});
     }
 
     const handleShowModal = () => setShowModal(true);
@@ -67,15 +74,14 @@ function Users() {
         });
     };
     const getPagedData = () => {
-        let filtered = users;
+        let filtered = suppliers;
         if (search) {
-            filtered = filtered.filter((user) =>
-                (user.name.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.email.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.phone.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.address.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.branch.name.toLowerCase() || '').includes(search.toLowerCase()) ||
-                (user.user.name.toLowerCase() || '').includes(search.toLowerCase())
+            filtered = filtered.filter((supplier) =>
+                (supplier.name.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (supplier.email.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (supplier.phone.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (supplier.address.toLowerCase() || '').includes(search.toLowerCase()) ||
+                (supplier.createdAt.toLowerCase() || '').includes(search.toLowerCase())
             );
         }
         const paginated = paginate(filtered, currentPage, pageSize)
@@ -85,15 +91,14 @@ function Users() {
     const from = paginatedUsers.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
     const to = Math.min((currentPage * pageSize), totalCount);
 
-    const handleEdit = (user) => {
+    const handleEdit = (supplier) => {
         setFormData({
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            address: user.address,
-            password: ""
+            name: supplier.name,
+            email: supplier.email,
+            phone: supplier.phone,
+            address: supplier.address,
         });
-        setSelectedUserId(user.id);
+        setselectedUserId(supplier.id);
         setIsEditMode(true);
         setShowModal(true);
     };
@@ -120,7 +125,6 @@ function Users() {
             if (result.isConfirmed) {
                 http.delete(`/suppliers/${userId}`)
                     .then((res) => {
-                        console.log(res);
                         toast.success(res.data.message);
                         fetchSuppliers();
                     }).catch((error) => {
@@ -143,32 +147,40 @@ function Users() {
         });
     };
 
-    const saveUser = (e) => {
+    const saveSuppliers = (e) => {
         e.preventDefault();
-        const url = isEditMode ? `/suppliers/${selectedUserId}` : "/suppliers";
-        const method = isEditMode ? "put" : "post";
-        http[method](url, {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
-        }).then((res) => {
-            console.log(res);
-            toast.success(res.data.message);
-        }).catch((error) => {
-            console.log(error);
-            setValidations(error?.response?.data?.errors);
-        }).finally(() => {
-            if (validations.length < 1) {
-                handleCloseModal();
-                fetchSuppliers();
-            }
-        });
+        setValidations("");
+        setErrors({})
+        const {error} = validationSchema.validate(formData, {abortEarly: false});
+        if (error) {
+            setErrors(error.details.reduce((errors, error) => {
+                errors[error.path[0]] = error.message;
+                return errors;
+            }, {}));
+            console.log(errors);
+        } else {
+            const url = isEditMode ? `/suppliers/${selectedUserId}` : "/suppliers";
+            const method = isEditMode ? "put" : "post";
+            http[method](url, {
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                address: formData.address,
+            }).then((res) => {
+                toast.success(res.data.message);
+                if (res.data.action === 1) {
+                    handleCloseModal();
+                    fetchSuppliers();
+                }
+            }).catch((error) => {
+                console.log(error);
+                setValidations(error?.response?.data?.errors);
+            });
+        }
     }
 
     function handleSearch(event) {
         setSearch(event.target.value);
-        console.log("Search state: ", event.target.value); // Add this line
         setCurrentPage(1);
     }
 
@@ -269,7 +281,7 @@ function Users() {
                                 <div className="align-items-center d-flex justify-content-between">
                                     <div>
                                         <span
-                                            className="tw-text-gray-500">Showing {from} to {to} of {users?.length} entries</span>
+                                            className="tw-text-gray-500">Showing {from} to {to} of {suppliers?.length} entries</span>
                                     </div>
                                     <AppPagination
                                         total={totalCount}
@@ -287,45 +299,43 @@ function Users() {
                     <Modal.Header closeButton>
                         <Modal.Title>{isEditMode ? "Edit Supplier" : "Add New Supplier"}</Modal.Title>
                     </Modal.Header>
-                    <Container className="py-2">
-                        {
-                            validations &&
-                            <div className="alert alert-danger">{
-                                validations && <ul>
-                                    {
-                                        validations.map((error, index) => (
-                                            <li className="text-danger" key={index}>{error?.msg}</li>
-                                        ))
-                                    }
-                                </ul>
-                            }
-                            </div>
-                        }
-                    </Container>
-                    <Form onSubmit={saveUser}>
+                    <Form onSubmit={saveSuppliers}>
                         <Modal.Body>
+                            {
+                                validations &&
+                                <div className="alert alert-danger">{
+                                    validations && <ul>
+                                        {
+                                            validations.map((error, index) => (
+                                                <li className="text-danger" key={index}>{error?.msg}</li>
+                                            ))
+                                        }
+                                    </ul>
+                                }
+                                </div>
+                            }
 
                             <div className="row">
                                 <div className="col-lg-6">
                                     <div className="mb-3">
-                                        <FormField label="Name" onChange={handleChange} value={formData.name}
+                                        <FormField label="Name" error={errors?.name} onChange={handleChange} value={formData.name}
                                                    name="name" id="name"/>
                                     </div>
                                 </div>
                                 <div className="col-lg-6">
                                     <div className="mb-3">
-                                        <FormField label="Email" onChange={handleChange} value={formData.email}
+                                        <FormField label="Email" error={errors?.email} onChange={handleChange} value={formData.email}
                                                    name="email" id="email"/>
                                     </div>
                                 </div>
                             </div>
                             <div className="mb-3">
-                                <FormField label="Phone" name="phone" onChange={handleChange}
+                                <FormField label="Phone" name="phone" error={errors.phone} onChange={handleChange}
                                            value={formData.phone}
                                            id="phone"/>
                             </div>
                             <div className="mb-3">
-                                <FormField label="Address" name="address" type="textarea" onChange={handleChange}
+                                <FormField label="Address" name="address" error={errors.address} type="textarea" onChange={handleChange}
                                            value={formData.address}
                                            id="address"/>
                             </div>
@@ -347,4 +357,4 @@ function Users() {
     );
 }
 
-export default Users;
+export default Suppliers;
