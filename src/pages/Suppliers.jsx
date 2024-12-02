@@ -14,6 +14,7 @@ import {format} from 'date-fns';
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
 import Joi from "joi";
+import {useContent} from "../providers/ContentProvider.jsx";
 
 const validationSchema = Joi.object({
     name: Joi.string().required().label("Name"),
@@ -21,13 +22,14 @@ const validationSchema = Joi.object({
     phone: Joi.string().min(10).required().label("Phone"),
     address: Joi.string().required().label("Address"),
 });
+
 function Suppliers() {
+    const {suppliers, setSuppliers, fetchSuppliers} = useContent();
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState({});
-    const [suppliers, setSuppliers] = useState([]);
     const [search, setSearch] = useState('');
     const pageSize = 10;
     const [validations, setValidations] = useState("");
@@ -38,21 +40,8 @@ function Suppliers() {
         address: "",
     });
     const [isEditMode, setIsEditMode] = useState(false);
-    const [selectedUserId, setselectedUserId] = useState(null);
+    const [selectedSupplierId, setSelectedSupplierId] = useState(null);
 
-    const fetchSuppliers = () => {
-        setIsLoading(true);
-        http.get("/suppliers")
-            .then((res) => {
-                let data = res.data;
-                setSuppliers(data);
-            }).catch(() => {
-
-        })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }
 
     const handleChange = (e) => {
         setFormData({
@@ -98,7 +87,7 @@ function Suppliers() {
             phone: supplier.phone,
             address: supplier.address,
         });
-        setselectedUserId(supplier.id);
+        setSelectedSupplierId(supplier.id);
         setIsEditMode(true);
         setShowModal(true);
     };
@@ -125,17 +114,16 @@ function Suppliers() {
             if (result.isConfirmed) {
                 http.delete(`/suppliers/${userId}`)
                     .then((res) => {
-                        toast.success(res.data.message);
-                        fetchSuppliers();
+                        swalWithBootstrapButtons.fire({
+                            title: "Deleted!",
+                            text: res.data.message,
+                            icon: "success"
+                        }).then(() => {
+                            setSuppliers(suppliers.filter((supplier) => supplier.id !== userId))
+                        });
                     }).catch((error) => {
                     console.log(error);
                     toast.error(error.response.data.message);
-                });
-
-                swalWithBootstrapButtons.fire({
-                    title: "Deleted!",
-                    text: "Your file has been deleted.",
-                    icon: "success"
                 });
             } else if (result.dismiss === Swal.DismissReason.cancel) {
                 swalWithBootstrapButtons.fire({
@@ -159,7 +147,7 @@ function Suppliers() {
             }, {}));
             console.log(errors);
         } else {
-            const url = isEditMode ? `/suppliers/${selectedUserId}` : "/suppliers";
+            const url = isEditMode ? `/suppliers/${selectedSupplierId}` : "/suppliers";
             const method = isEditMode ? "put" : "post";
             http[method](url, {
                 name: formData.name,
@@ -178,15 +166,11 @@ function Suppliers() {
             });
         }
     }
-
     function handleSearch(event) {
         setSearch(event.target.value);
         setCurrentPage(1);
     }
 
-    useEffect(() => {
-        fetchSuppliers();
-    }, []);
     useEffect(() => {
 
         setActiveLinkGlobal("supp");
@@ -195,15 +179,8 @@ function Suppliers() {
         setCurrentPage(pageNumber);
     };
     return (
-        <div>{
-            isLoading ? (
-                // Show loader while games are loading or while images are still being loaded
-                _.times(6, (i) => (
-                    <div className="my-2" key={`place_${i}`}>
-                        <ContentLoader/>
-                    </div>
-                ))
-            ) : <Container fluid={true}>
+        <div>
+            <Container fluid={true}>
                 <nav aria-label="breadcrumb" className="bg-light mb-3 px-3 py-2 rounded">
                     <ol className="breadcrumb mb-0">
                         <li className="breadcrumb-item"><Link to="/">Home</Link></li>
@@ -318,13 +295,15 @@ function Suppliers() {
                             <div className="row">
                                 <div className="col-lg-6">
                                     <div className="mb-3">
-                                        <FormField label="Name" error={errors?.name} onChange={handleChange} value={formData.name}
+                                        <FormField label="Name" error={errors?.name} onChange={handleChange}
+                                                   value={formData.name}
                                                    name="name" id="name"/>
                                     </div>
                                 </div>
                                 <div className="col-lg-6">
                                     <div className="mb-3">
-                                        <FormField label="Email" error={errors?.email} onChange={handleChange} value={formData.email}
+                                        <FormField label="Email" error={errors?.email} onChange={handleChange}
+                                                   value={formData.email}
                                                    name="email" id="email"/>
                                     </div>
                                 </div>
@@ -335,7 +314,8 @@ function Suppliers() {
                                            id="phone"/>
                             </div>
                             <div className="mb-3">
-                                <FormField label="Address" name="address" error={errors.address} type="textarea" onChange={handleChange}
+                                <FormField label="Address" name="address" error={errors.address} type="textarea"
+                                           onChange={handleChange}
                                            value={formData.address}
                                            id="address"/>
                             </div>
@@ -352,7 +332,7 @@ function Suppliers() {
                     </Form>
                 </Modal>
             </Container>
-        }</div>
+        </div>
 
     );
 }

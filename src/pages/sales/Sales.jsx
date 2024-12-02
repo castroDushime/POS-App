@@ -13,14 +13,15 @@ import {format} from 'date-fns';
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
 import AppCard from "../../components/common/AppCard.jsx";
+import {useContent} from "../../providers/ContentProvider.jsx";
 
 function Sales() {
+    const {sales, setSales} = useContent();
     const location = useLocation();
     const isPosUrl = location.pathname.includes('pos/history')
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
-    const [purchases, setPurchases] = useState([]);
     const [search, setSearch] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [receiptData, setReceiptData] = useState(null);
@@ -196,19 +197,6 @@ function Sales() {
         }
 
     };
-    const fetchSales = () => {
-        setIsLoading(true);
-        http.get("/sales")
-            .then((res) => {
-                let data = res.data;
-                setPurchases(data);
-            }).catch(() => {
-
-        })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }
     const handleCloseModal = () => {
         setShowModal(false);
         setReceiptData(null);
@@ -218,8 +206,8 @@ function Sales() {
         window.location.href = isPosUrl ? '/pos' : '/create-sale';
     };
     const getPagedData = () => {
-        let salesData = purchases.filter((sale) => sale.isPos === false);
-        let posData = purchases.filter((sale) => sale.isPos === true);
+        let salesData = sales.filter((sale) => sale.isPos === false);
+        let posData = sales.filter((sale) => sale.isPos === true);
         let filtered = isPosUrl ? posData : salesData;
         if (search) {
             filtered = filtered.filter((sale) =>
@@ -259,19 +247,19 @@ function Sales() {
             if (result.isConfirmed) {
                 http.delete(`/purchases/${purchaseId}`)
                     .then((res) => {
-                        console.log(res);
-                        toast.success(res.data.message);
-                        fetchSales();
+                        swalWithBootstrapButtons.fire({
+                            title: "Deleted!",
+                            text: res.data.message,
+                            icon: "success"
+                        }).then(() => {
+                            setSales(sales.filter((purchase) => purchase.id !== purchaseId));
+                        });
                     }).catch((error) => {
                     console.log(error);
                     toast.error(error.response.data.message);
                 });
 
-                swalWithBootstrapButtons.fire({
-                    title: "Deleted!",
-                    text: "Your file has been deleted.",
-                    icon: "success"
-                });
+
             } else if (result.dismiss === Swal.DismissReason.cancel) {
                 swalWithBootstrapButtons.fire({
                     title: "Cancelled",
@@ -282,16 +270,11 @@ function Sales() {
         });
     };
 
-
     function handleSearch(event) {
         setSearch(event.target.value);
         console.log("Search state: ", event.target.value); // Add this line
         setCurrentPage(1);
     }
-
-    useEffect(() => {
-        fetchSales();
-    }, []);
     useEffect(() => {
 
         setActiveLinkGlobal("sales");
@@ -408,7 +391,7 @@ function Sales() {
                             <div className="align-items-center d-flex justify-content-between">
                                 <div>
                                         <span
-                                            className="tw-text-gray-500">Showing {from} to {to} of {purchases?.length} entries</span>
+                                            className="tw-text-gray-500">Showing {from} to {to} of {sales?.length} entries</span>
                                 </div>
                                 <AppPagination
                                     total={totalCount}

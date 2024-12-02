@@ -1,66 +1,36 @@
-import {Container, Table,Modal, Button, Form, Dropdown} from "react-bootstrap";
+import {Container, Table, Modal, Button, Form, Dropdown} from "react-bootstrap";
 import {Link} from "react-router-dom";
 import Th from "../../components/common/Th.jsx";
 import {BsPlus} from "react-icons/bs";
-import {LuEye} from "react-icons/lu";
 import {useEffect, useState} from "react";
 import {useActiveLink} from "../../providers/ActiveLinkProvider.jsx";
 import FormField from "../../components/common/FormField.jsx";
-import {FaAsterisk} from "react-icons/fa6";
 import http from "../../services/httpService.js";
-import ContentLoader from "react-content-loader";
-import _ from "lodash";
 import AppPagination from "../../components/common/AppPagination.jsx";
 import {paginate} from "../../components/common/paginate.jsx";
 import {format} from 'date-fns';
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
+import {useContent} from "../../providers/ContentProvider.jsx";
 
 function Units() {
+    const {units, setUnits, fetchUnits} = useContent();
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [units, setUnits] = useState([]);
     const [search, setSearch] = useState('');
     const pageSize = 10;
-    const [suppliers, setSuppliers] = useState([]);
     const [formData, setFormData] = useState({
         name: "",
     });
-    const [imagePreview, setImagePreview] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
-    const [selectedUserId, setSelectedUserId] = useState(null);
-
-    const fetchunits = () => {
-        setIsLoading(true);
-        http.get( "/units")
-            .then((res) => {
-                console.log(res);
-                let data = res.data;
-                setUnits(data);
-            }).catch(() => {
-
-        })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }
+    const [selectedUnitId, setSelectedUnitId] = useState(null);
     const handleChange = (e) => {
-        const { name, value, files } = e.target;
-        if (name === "image" && files.length > 0) {
-            const file = files[0];
-            setFormData({
-                ...formData,
-                [name]: file
-            });
-            setImagePreview(URL.createObjectURL(file));
-        } else {
-            setFormData({
-                ...formData,
-                [name]: value
-            });
-        }
+        const {name, value} = e.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
     };
 
     const handleShowModal = () => setShowModal(true);
@@ -69,7 +39,6 @@ function Units() {
         setIsEditMode(false);
         setFormData({
             name: "",
-            image: null
         });
     };
     const getPagedData = () => {
@@ -83,8 +52,8 @@ function Units() {
         const paginated = paginate(filtered, currentPage, pageSize)
         return {totalCount: filtered.length, data: paginated}
     }
-    const {totalCount, data: paginatedunits} = getPagedData();
-    const from = paginatedunits.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
+    const {totalCount, data: paginatedUnits} = getPagedData();
+    const from = paginatedUnits.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
     const to = Math.min((currentPage * pageSize), totalCount);
 
     const handleEdit = (user) => {
@@ -92,13 +61,13 @@ function Units() {
             name: user.name,
             image: user.image
         });
-        setSelectedUserId(user.id);
+        setSelectedUnitId(user.id);
         setIsEditMode(true);
         setShowModal(true);
     };
 
 
-    const handleDelete = (userId) => {
+    const handleDelete = (unitId) => {
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
                 confirmButton: "btn btn-primary text-white me-2",
@@ -117,21 +86,21 @@ function Units() {
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                http.delete(`/units/${userId}`)
+                http.delete(`/units/${unitId}`)
                     .then((res) => {
-                        console.log(res);
-                        toast.success(res.data.message);
-                        fetchunits();
+                        swalWithBootstrapButtons.fire({
+                            title: "Deleted!",
+                            text: res.data.message,
+                            icon: "success"
+                        }).then(() => {
+                            setUnits(units.filter((unit) => unit.id !== unitId));
+                        });
                     }).catch((error) => {
                     console.log(error);
                     toast.error(error.response.data.message);
                 });
 
-                swalWithBootstrapButtons.fire({
-                    title: "Deleted!",
-                    text: "Your file has been deleted.",
-                    icon: "success"
-                });
+
             } else if (result.dismiss === Swal.DismissReason.cancel) {
                 swalWithBootstrapButtons.fire({
                     title: "Cancelled",
@@ -141,24 +110,9 @@ function Units() {
             }
         });
     };
-    const fetchSuppliers = () => {
-        setIsLoading(true);
-        http.get("/suppliers")
-            .then((res) => {
-                console.log(res);
-                let data = res.data;
-                setSuppliers(data);
-            }).catch(() => {
-
-        })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }
-
     const saveProduct = (e) => {
         e.preventDefault();
-        const url = isEditMode ? `/units/${selectedUserId}` : "/units";
+        const url = isEditMode ? `/units/${selectedUnitId}` : "/units";
         const method = isEditMode ? "put" : "post";
         http[method](url, {
             name: formData.name,
@@ -174,7 +128,7 @@ function Units() {
             console.log(error);
         }).finally(() => {
             handleCloseModal();
-            fetchunits();
+            fetchUnits();
         });
     }
 
@@ -185,10 +139,6 @@ function Units() {
     }
 
     useEffect(() => {
-        fetchunits();
-        fetchSuppliers();
-    }, []);
-    useEffect(() => {
 
         setActiveLinkGlobal("units");
     }, [setActiveLinkGlobal]);
@@ -196,15 +146,8 @@ function Units() {
         setCurrentPage(pageNumber);
     };
     return (
-        <div>{
-            isLoading ? (
-                // Show loader while games are loading or while images are still being loaded
-                _.times(6, (i) => (
-                    <div className="my-2" key={`place_${i}`}>
-                        <ContentLoader/>
-                    </div>
-                ))
-            ) : <Container fluid={true}>
+        <div>
+            <Container fluid={true}>
                 <nav aria-label="breadcrumb" className="bg-light mb-3 px-3 py-2 rounded">
                     <ol className="breadcrumb mb-0">
                         <li className="breadcrumb-item"><Link to="/">Home</Link></li>
@@ -249,7 +192,7 @@ function Units() {
                                     </thead>
                                     <tbody>
                                     {
-                                        paginatedunits.map((brand, index) => (
+                                        paginatedUnits.map((brand, index) => (
                                             <tr key={index}>
                                                 <td className="tw-text-xs">{format(new Date(brand.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
                                                 <td className="tw-text-xs">{brand.name}</td>
@@ -292,7 +235,7 @@ function Units() {
                     </div>
                 </div>
 
-                <Modal show={showModal}  onHide={handleCloseModal}>
+                <Modal show={showModal} onHide={handleCloseModal}>
                     <Modal.Header closeButton>
                         <Modal.Title>{isEditMode ? "Edit Units" : "Add New Units"}</Modal.Title>
                     </Modal.Header>
@@ -320,7 +263,7 @@ function Units() {
                     </Form>
                 </Modal>
             </Container>
-        }</div>
+        </div>
 
     );
 }

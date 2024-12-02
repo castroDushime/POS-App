@@ -49,6 +49,7 @@ function Login() {
                 setSubmitting(false);
                 if (data.action === 1) {
                     navigate('/dashboard');
+                    window.location.reload();
                 }
             }).catch((error) => {
                 console.log(error);

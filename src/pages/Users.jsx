@@ -2,7 +2,6 @@ import {Container, Table, Pagination, Modal, Button, Form, Dropdown} from "react
 import {Link} from "react-router-dom";
 import Th from "../components/common/Th.jsx";
 import {BsPlus} from "react-icons/bs";
-import {LuEye} from "react-icons/lu";
 import {useEffect, useState} from "react";
 import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
 import FormField from "../components/common/FormField.jsx";
@@ -13,11 +12,11 @@ import _ from "lodash";
 import AppPagination from "../components/common/AppPagination.jsx";
 import {paginate} from "../components/common/paginate.jsx";
 import {format} from 'date-fns';
-import {fetchBranches, loadRoles} from "../services/authService.js";
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
 import Joi from "joi";
 import ErrorMessage from "../components/common/ErrorMessage.jsx";
+import {useContent} from "../providers/ContentProvider.jsx";
 
 const validationSchema = Joi.object({
     name: Joi.string().required().min(3).max(50),
@@ -29,16 +28,13 @@ const validationSchema = Joi.object({
 });
 
 function Users() {
+    const {users,setUsers,branches,roles,fetchUsers}=useContent();
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [users, setUsers] = useState([]);
     const [errors, setErrors] = useState({});
     const [search, setSearch] = useState('');
     const pageSize = 10;
-    const [branches, setBranches] = useState([]);
-    const [roles, setRoles] = useState([]);
     const [validations, setValidations] = useState("");
     const [formData, setFormData] = useState({
         name: "",
@@ -50,36 +46,6 @@ function Users() {
     });
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(null);
-
-    const fetchUsers = () => {
-        setIsLoading(true);
-        http.get("/users")
-            .then((res) => {
-                let data = res.data;
-                setUsers(data);
-            }).catch(() => {
-
-        })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }
-    const loadBranches = () => {
-        fetchBranches().then((res) => {
-            setBranches(res);
-        }).catch(() => {
-            console.log("Error fetching branches");
-        });
-    }
-    const fetchRoles = () => {
-        setIsLoading(true);
-        loadRoles().then((res) => {
-            setIsLoading(false);
-            setRoles(res);
-        }).catch(() => {
-            console.log("Error fetching roles");
-        });
-    }
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -156,18 +122,19 @@ function Users() {
             if (result.isConfirmed) {
                 http.delete(`/users/${userId}`)
                     .then((res) => {
-                        toast.success("User deleted successfully");
-                        fetchUsers();
+                        swalWithBootstrapButtons.fire({
+                            title: "Deleted!",
+                            text: res.data.message,
+                            icon: "success"
+                        }).then(() => {
+                            setUsers(users.filter((user) => user.id !== userId));
+                        })
                     }).catch((error) => {
                     console.log(error);
                     toast.error("Error deleting user");
                 });
 
-                swalWithBootstrapButtons.fire({
-                    title: "Deleted!",
-                    text: "Your file has been deleted.",
-                    icon: "success"
-                });
+
             } else if (result.dismiss === Swal.DismissReason.cancel) {
                 swalWithBootstrapButtons.fire({
                     title: "Cancelled",
@@ -220,12 +187,6 @@ function Users() {
         console.log("Search state: ", event.target.value); // Add this line
         setCurrentPage(1);
     }
-
-    useEffect(() => {
-        fetchUsers();
-        loadBranches();
-        fetchRoles();
-    }, []);
     useEffect(() => {
 
         setActiveLinkGlobal("user");
@@ -234,15 +195,8 @@ function Users() {
         setCurrentPage(pageNumber);
     };
     return (
-        <div>{
-            isLoading ? (
-                // Show loader while games are loading or while images are still being loaded
-                _.times(6, (i) => (
-                    <div className="my-2" key={`place_${i}`}>
-                        <ContentLoader/>
-                    </div>
-                ))
-            ) : <Container fluid={true}>
+        <div>
+            <Container fluid={true}>
                 <nav aria-label="breadcrumb" className="bg-light mb-3 px-3 py-2 rounded">
                     <ol className="breadcrumb mb-0">
                         <li className="breadcrumb-item"><Link to="/">Home</Link></li>
@@ -440,7 +394,7 @@ function Users() {
                     </Modal>
                 </div>
             </Container>
-        }</div>
+        </div>
 
     );
 }

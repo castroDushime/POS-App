@@ -1,22 +1,18 @@
-import {Container, Table, Pagination, Modal, Button, Form, Dropdown} from "react-bootstrap";
+import {Container, Table,  Modal, Button, Form, Dropdown} from "react-bootstrap";
 import {Link} from "react-router-dom";
 import Th from "../components/common/Th.jsx";
 import {BsPlus} from "react-icons/bs";
-import {LuEye} from "react-icons/lu";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useActiveLink} from "../providers/ActiveLinkProvider.jsx";
 import FormField from "../components/common/FormField.jsx";
-import {FaAsterisk} from "react-icons/fa6";
 import http from "../services/httpService.js";
-import ContentLoader from "react-content-loader";
-import _ from "lodash";
 import AppPagination from "../components/common/AppPagination.jsx";
 import {paginate} from "../components/common/paginate.jsx";
 import {format} from 'date-fns';
-import {loadRoles} from "../services/authService.js";
 import {toast} from "react-toastify";
 import Swal from 'sweetalert2';
 import Joi from "joi";
+import {useContent} from "../providers/ContentProvider.jsx";
 
 
 const validationSchema = Joi.object({
@@ -25,13 +21,12 @@ const validationSchema = Joi.object({
 });
 
 function Branches() {
+    const {branches,setBranches,fetchBranches} = useContent();
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [validations, setValidations] = useState("");
-    const [branches, setBranches] = useState([]);
     const [search, setSearch] = useState('');
     const pageSize = 10;
     const [formData, setFormData] = useState({
@@ -39,21 +34,7 @@ function Branches() {
         shortName: ""
     });
     const [isEditMode, setIsEditMode] = useState(false);
-    const [selectedUserId, setSelectedUserId] = useState(null);
-
-    const fetchBranches = () => {
-        setIsLoading(true);
-        http.get("/branches")
-            .then((res) => {
-                let data = res.data;
-                setBranches(data);
-            }).catch(() => {
-
-        })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }
+    const [selectedBranchId, setSelectedBranchId] = useState(null);
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -89,13 +70,13 @@ function Branches() {
             name: branch.name,
             shortName: branch.shortName
         });
-        setSelectedUserId(branch.id);
+        setSelectedBranchId(branch.id);
         setIsEditMode(true);
         setShowModal(true);
     };
 
 
-    const handleDelete = (userId) => {
+    const handleDelete = (branchId) => {
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
                 confirmButton: "btn btn-primary text-white me-2",
@@ -114,23 +95,22 @@ function Branches() {
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                http.delete(`/branches/${userId}`)
+                http.delete(`/branches/${branchId}`)
                     .then((res) => {
-                        toast.success(res.data.message);
-                        fetchBranches();
+                        swalWithBootstrapButtons.fire({
+                            title: "Deleted!",
+                            text: res.data.message,
+                            icon: "success"
+                        }).then(() => {
+                            setBranches(branches.filter((branch) => branch.id !== branchId));
+                        });
                     }).catch((error) => {
                     toast.error(error.response.data.message);
-                });
-
-                swalWithBootstrapButtons.fire({
-                    title: "Deleted!",
-                    text: "Your file has been deleted.",
-                    icon: "success"
                 });
             } else if (result.dismiss === Swal.DismissReason.cancel) {
                 swalWithBootstrapButtons.fire({
                     title: "Cancelled",
-                    text: "Your imaginary file is safe :)",
+                    text: "Your Branch  is safe :)",
                     icon: "error"
                 });
             }
@@ -148,14 +128,14 @@ function Branches() {
                 return errors;
             }, {}));
         } else {
-            const url = isEditMode ? `/branches/${selectedUserId}` : "/branches";
+            const url = isEditMode ? `/branches/${selectedBranchId}` : "/branches";
             const method = isEditMode ? "put" : "post";
             http[method](url, {
                 name: formData.name,
                 shortName: formData.shortName.toUpperCase()
             }).then((res) => {
-                console.log(res);
                 toast.success(res.data.message);
+                console.log(res);
                 if (res.data.action === 1) {
                     handleCloseModal();
                     setFormData({
@@ -178,7 +158,6 @@ function Branches() {
                 name: "",
                 shortName: ""
             });
-            fetchBranches();
         }
     }
     console.log(validations);
@@ -190,25 +169,14 @@ function Branches() {
     }
 
     useEffect(() => {
-        fetchBranches();
-    }, []);
-    useEffect(() => {
-
         setActiveLinkGlobal("warehouses");
     }, [setActiveLinkGlobal]);
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
     };
     return (
-        <div>{
-            isLoading ? (
-                // Show loader while games are loading or while images are still being loaded
-                _.times(6, (i) => (
-                    <div className="my-2" key={`place_${i}`}>
-                        <ContentLoader/>
-                    </div>
-                ))
-            ) : <Container fluid={true}>
+        <div>
+            <Container fluid={true}>
                 <nav aria-label="breadcrumb" className="bg-light mb-3 px-3 py-2 rounded">
                     <ol className="breadcrumb mb-0">
                         <li className="breadcrumb-item"><Link to="/">Home</Link></li>
@@ -279,6 +247,12 @@ function Branches() {
                                     }
                                     </tbody>
                                 </Table>
+                                {
+                                    !paginatedBranches.length &&
+                                    <div className="text-center">
+                                        <h4 className="text-muted">No data found</h4>
+                                    </div>
+                                }
                                 <div className="align-items-center d-flex justify-content-between">
                                     <div>
                                         <span
@@ -343,7 +317,7 @@ function Branches() {
                     </Form>
                 </Modal>
             </Container>
-        }</div>
+        </div>
 
     );
 }

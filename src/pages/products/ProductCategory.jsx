@@ -1,4 +1,4 @@
-import {Container, Table,Modal, Button, Form, Dropdown} from "react-bootstrap";
+import {Container, Table, Modal, Button, Form, Dropdown} from "react-bootstrap";
 import {Link} from "react-router-dom";
 import Th from "../../components/common/Th.jsx";
 import {BsPlus} from "react-icons/bs";
@@ -16,15 +16,18 @@ import Swal from 'sweetalert2';
 import Td from "../../components/common/Td.jsx";
 import brandLogo from "../../assets/brand_logo.png"
 import Joi from "joi";
+import {useContent} from "../../providers/ContentProvider.jsx";
 
 
-let BACK_URL=import.meta.env.VITE_APP_API_URL;
+let BACK_URL = import.meta.env.VITE_APP_API_URL;
+
 function ProductCategory() {
+    let {categories} = useContent();
     const {setActiveLinkGlobal} = useActiveLink();
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [categories, setCategories] = useState([]);
+    // const [categories, setCategories] = useState([]);
     const [search, setSearch] = useState('');
     const [errors, setErrors] = useState({});
     const [validations, setValidations] = useState("");
@@ -37,26 +40,26 @@ function ProductCategory() {
     const [imagePreview, setImagePreview] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(null);
-    const validationSchema=Joi.object({
-        name:Joi.string().required().label("Name"),
-        image:Joi.any().required().label("Image")
+    const validationSchema = Joi.object({
+        name: Joi.string().required().label("Name"),
+        image: Joi.any().required().label("Image")
     });
 
-    const fetchCategories = () => {
-        setIsLoading(true);
-        http.get("/categories")
-            .then((res) => {
-                console.log(res);
-                let data = res.data;
-                setCategories(data);
-            }).catch(() => {
-        })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }
+    // const fetchCategories = () => {
+    //     setIsLoading(true);
+    //     http.get("/categories")
+    //         .then((res) => {
+    //             console.log(res);
+    //             let data = res.data;
+    //             setCategories(data);
+    //         }).catch(() => {
+    //     })
+    //         .finally(() => {
+    //             setIsLoading(false);
+    //         });
+    // }
     const handleChange = (e) => {
-        const { name, value, files } = e.target;
+        const {name, value, files} = e.target;
         if (name === "image" && files.length > 0) {
             const file = files[0];
             setFormData({
@@ -132,7 +135,7 @@ function ProductCategory() {
                     .then((res) => {
                         console.log(res);
                         toast.success(res.data.message);
-                        fetchCategories();
+                        // fetchCategories();
                     }).catch((error) => {
                     console.log(error);
                     toast.error(error.response.data.message);
@@ -195,7 +198,7 @@ function ProductCategory() {
                 console.log(error);
             }).finally(() => {
                 handleCloseModal();
-                fetchCategories();
+                // fetchCategories();
             });
         }
     }
@@ -206,10 +209,10 @@ function ProductCategory() {
         setCurrentPage(1);
     }
 
-    useEffect(() => {
-        fetchCategories();
-        fetchSuppliers();
-    }, []);
+    // useEffect(() => {
+    //     // fetchCategories();
+    //     fetchSuppliers();
+    // }, []);
     useEffect(() => {
 
         setActiveLinkGlobal("categories");
@@ -277,9 +280,9 @@ function ProductCategory() {
                                                 <td className="tw-text-xs">{format(new Date(category.createdAt), 'dd-MM-yyy HH:mm:ss')}</td>
                                                 <td className="tw-text-xs">
 
-                                                    {category.image ? <img src={ `${BACK_URL}/uploads/${category.image}`}
-                                                                            className="img-thumbnail rounded-circle"
-                                                                            style={{width: "60px", height: "60px"}}/> :
+                                                    {category.image ? <img src={`${BACK_URL}/uploads/${category.image}`}
+                                                                           className="img-thumbnail rounded-circle"
+                                                                           style={{width: "60px", height: "60px"}}/> :
                                                         <img src={brandLogo}
                                                              className=" rounded-circle"
                                                              style={{width: "60px", height: "60px"}}/>}
@@ -322,7 +325,7 @@ function ProductCategory() {
                     </div>
                 </div>
 
-                <Modal show={showModal}  onHide={handleCloseModal}>
+                <Modal show={showModal} onHide={handleCloseModal}>
                     <Modal.Header closeButton>
                         <Modal.Title>{isEditMode ? "Edit Product" : "Add New Product"}</Modal.Title>
                     </Modal.Header>
@@ -350,7 +353,8 @@ function ProductCategory() {
                                         />
                                         {imagePreview && (
                                             <div className="mt-3 d-flex justify-content-center">
-                                                <img src={imagePreview} alt="Profile Preview" className="img-thumbnail rounded-circle tw-object-contain"
+                                                <img src={imagePreview} alt="Profile Preview"
+                                                     className="img-thumbnail rounded-circle tw-object-contain"
                                                      style={{width: "150px", height: "150px"}}/>
                                             </div>
                                         )}
